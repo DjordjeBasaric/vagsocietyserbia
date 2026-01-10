@@ -66,7 +66,6 @@ export function RegistrationForm() {
   return (
     <form
       action={formAction}
-      encType="multipart/form-data"
       className="mt-8 space-y-6"
     >
       {state.ok ? (

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520" role="img" aria-label="VagSocietySerbia car placeholder 3">
+  <defs>
+    <linearGradient id="grad-3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#141e30" />
+      <stop offset="100%" stop-color="#243b55" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#grad-3)" />
+  <g opacity="0.25" fill="#ffffff">
+    <rect x="80" y="320" width="640" height="40" rx="20" />
+    <rect x="140" y="260" width="520" height="70" rx="35" />
+    <circle cx="220" cy="380" r="32" />
+    <circle cx="580" cy="380" r="32" />
+  </g>
+  <text x="80" y="130" font-family="'Trebuchet MS', Arial, sans-serif" font-size="44" fill="#ffffff">VagSocietySerbia</text>
+  <text x="80" y="180" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22" fill="#ffffff" opacity="0.8">Car Gallery Placeholder</text>
+</svg>

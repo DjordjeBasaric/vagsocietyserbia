@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+}
+
+enum ProductCategory {
+  APPAREL
+  ACCESSORIES
+  STICKERS
+}
+
+enum OrderStatus {
+  PENDING
+  DECLINED
+  SHIPPED
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  priceCents  Int
+  imageUrl    String
+  category    ProductCategory @default(APPAREL)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Order {
+  id                  String   @id @default(uuid())
+  fullName            String
+  email               String
+  phone               String
+  shippingAddress     String
+  productId           String
+  productNameSnapshot String
+  unitPriceCents      Int
+  quantity            Int      @default(1)
+  status              OrderStatus @default(PENDING)
+  createdAt           DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([email])
+  @@index([status])
+}
+
+model EventRegistration {
+  id                  String              @id @default(uuid())
+  firstName           String
+  lastName            String
+  email               String
+  carModel            String
+  country             String
+  city                String
+  arrivingWithTrailer Boolean
+  additionalInfo      String
+  status              RegistrationStatus @default(PENDING)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  images CarImage[]
+
+  @@index([email])
+  @@index([status])
+}
+
+model CarImage {
+  id             String   @id @default(uuid())
+  url            String
+  registrationId String
+  createdAt      DateTime @default(now())
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}

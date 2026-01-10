@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img" aria-label="VagSocietySerbia product placeholder">
+  <defs>
+    <linearGradient id="grad-product" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#grad-product)" />
+  <rect x="140" y="160" width="360" height="320" rx="28" fill="#ffffff" opacity="0.18" />
+  <text x="80" y="110" font-family="'Trebuchet MS', Arial, sans-serif" font-size="36" fill="#ffffff">VagSocietySerbia</text>
+  <text x="80" y="150" font-family="'Trebuchet MS', Arial, sans-serif" font-size="20" fill="#ffffff" opacity="0.8">Product Placeholder</text>
+</svg>

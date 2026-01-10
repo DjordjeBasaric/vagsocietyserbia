@@ -55,15 +55,15 @@ export async function createProduct(
   }
 }
 
-export async function updateProduct(formData: FormData) {
+export async function updateProduct(formData: FormData): Promise<void> {
   try {
     const productId = String(formData.get("productId") || "");
     const priceCents = parsePriceToCents(String(formData.get("price") || ""));
     if (!productId) {
-      return { ok: false, message: "Proizvod nije pronadjen." };
+      return;
     }
     if (!priceCents) {
-      return { ok: false, message: "Cena mora biti validan broj." };
+      return;
     }
 
     const raw = {
@@ -77,10 +77,7 @@ export async function updateProduct(formData: FormData) {
 
     const parsed = productSchema.safeParse(raw);
     if (!parsed.success) {
-      return {
-        ok: false,
-        message: parsed.error.issues[0]?.message || "Neispravni podaci.",
-      };
+      return;
     }
 
     await prisma.product.update({
@@ -89,26 +86,22 @@ export async function updateProduct(formData: FormData) {
     });
     revalidatePath("/admin");
     revalidatePath("/shop");
-    return { ok: true, message: "Proizvod azuriran." };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Ne mozemo da azuriramo proizvod." };
   }
 }
 
-export async function deleteProduct(formData: FormData) {
+export async function deleteProduct(formData: FormData): Promise<void> {
   try {
     const productId = String(formData.get("productId") || "");
     if (!productId) {
-      return { ok: false, message: "Proizvod nije pronadjen." };
+      return;
     }
 
     await prisma.product.delete({ where: { id: productId } });
     revalidatePath("/admin");
     revalidatePath("/shop");
-    return { ok: true, message: "Proizvod obrisan." };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Ne mozemo da obrisemo proizvod." };
   }
 }

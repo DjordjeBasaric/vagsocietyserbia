@@ -105,7 +105,7 @@ const orderStatusSchema = z.object({
   status: z.enum(["PENDING", "DECLINED", "SHIPPED"]),
 });
 
-export async function updateOrderStatus(formData: FormData) {
+export async function updateOrderStatus(formData: FormData): Promise<void> {
   try {
     const parsed = orderStatusSchema.safeParse({
       orderId: String(formData.get("orderId") || ""),
@@ -113,7 +113,7 @@ export async function updateOrderStatus(formData: FormData) {
     });
 
     if (!parsed.success) {
-      return { ok: false };
+      return;
     }
 
     await prisma.order.update({
@@ -122,9 +122,7 @@ export async function updateOrderStatus(formData: FormData) {
     });
 
     revalidatePath("/admin/orders");
-    return { ok: true };
   } catch (error) {
     console.error(error);
-    return { ok: false };
   }
 }

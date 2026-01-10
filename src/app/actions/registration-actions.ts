@@ -101,11 +101,11 @@ export async function submitEventRegistration(
   }
 }
 
-export async function approveRegistration(formData: FormData) {
+export async function approveRegistration(formData: FormData): Promise<void> {
   try {
     const id = String(formData.get("registrationId") || "");
     if (!id) {
-      return { ok: false };
+      return;
     }
 
     const registration = await prisma.eventRegistration.update({
@@ -125,9 +125,7 @@ export async function approveRegistration(formData: FormData) {
     });
 
     revalidatePath("/admin");
-    return { ok: true };
   } catch (error) {
     console.error(error);
-    return { ok: false };
   }
 }

@@ -31,7 +31,7 @@ export async function submitEventRegistration(
     if (!parsed.success) {
       return {
         ok: false,
-        message: parsed.error.errors[0]?.message || "Neispravni podaci.",
+        message: parsed.error.issues[0]?.message || "Neispravni podaci.",
       };
     }
 

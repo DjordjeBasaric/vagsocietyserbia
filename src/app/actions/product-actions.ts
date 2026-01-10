@@ -41,7 +41,7 @@ export async function createProduct(
     if (!parsed.success) {
       return {
         ok: false,
-        message: parsed.error.errors[0]?.message || "Neispravni podaci.",
+        message: parsed.error.issues[0]?.message || "Neispravni podaci.",
       };
     }
 
@@ -79,7 +79,7 @@ export async function updateProduct(formData: FormData) {
     if (!parsed.success) {
       return {
         ok: false,
-        message: parsed.error.errors[0]?.message || "Neispravni podaci.",
+        message: parsed.error.issues[0]?.message || "Neispravni podaci.",
       };
     }
 

@@ -38,6 +38,17 @@ body {
   min-height: 100vh;
 }
 
+/* Hide iOS/Safari media controls overlays for the hero background video */
+.hero-video::-webkit-media-controls,
+.hero-video::-webkit-media-controls-panel,
+.hero-video::-webkit-media-controls-play-button,
+.hero-video::-webkit-media-controls-start-playback-button,
+.hero-video::-webkit-media-controls-enclosure,
+.hero-video::-webkit-media-controls-overlay-enclosure {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
 @layer base {
   a {
     color: inherit;

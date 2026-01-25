@@ -88,7 +88,10 @@ async function uploadToCloudinary(
     .digest("hex");
 
   const processed = await compressForStorage(file);
-  const blob = new Blob([processed.buffer], {
+  // Next.js/TS: BlobPart typing doesn't accept Node Buffer<ArrayBufferLike>.
+  // Copy into a Uint8Array backed by a plain ArrayBuffer.
+  const bytes = Uint8Array.from(processed.buffer);
+  const blob = new Blob([bytes], {
     type: processed.mime || "application/octet-stream",
   });
 

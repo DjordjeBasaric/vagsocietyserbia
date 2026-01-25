@@ -26,8 +26,8 @@ export const translations = {
       },
       gallery: {
         subtitle: "Galerija",
-        title: "Istaknuti projekti",
-        placeholder: "Privremene slike dok ne stigne galerija sezone 2025.",
+        title: "Neki od naših projekata",
+        placeholder: "Prevucite za listanje kroz galeriju.",
       },
       join: {
         subtitle: "Pridruži se klubu",
@@ -195,8 +195,8 @@ export const translations = {
       },
       gallery: {
         subtitle: "Gallery",
-        title: "Featured projects",
-        placeholder: "Temporary images until the 2025 season gallery arrives.",
+        title: "Some of our projects",
+        placeholder: "Swipe to browse the gallery.",
       },
       join: {
         subtitle: "Join the club",

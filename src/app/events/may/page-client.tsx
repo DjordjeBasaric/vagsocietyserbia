@@ -12,7 +12,7 @@ export function MayEventPageClient() {
   const details = [
     {
       key: "date",
-      value: "9. i 10. maj 2026",
+      value: language === "sr" ? "9. i 10. maj 2026" : "9. and 10. May 2026",
     },
     {
       key: "location",
@@ -63,11 +63,11 @@ export function MayEventPageClient() {
           </div>
           <div className="fade-in overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
             <Image
-              src="/placeholders/car-3.svg"
-              alt="Placeholder za događaj"
+              src="/prijava_slika.jpg"
+              alt="Prijava za skup"
               width={800}
               height={520}
-              className="h-full w-full object-cover grayscale"
+              className="h-full w-full object-contain bg-black"
             />
           </div>
         </div>

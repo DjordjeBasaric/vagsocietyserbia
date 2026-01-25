@@ -13,6 +13,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://vagsocietyserbia.com"),
+  icons: {
+    icon: "/logo/vss_logo_black.png",
+    shortcut: "/logo/vss_logo_black.png",
+    apple: "/logo/vss_logo_black.png",
+  },
   title: {
     default: "VagSocietySerbia | Automobilski klub",
     template: "%s | VagSocietySerbia",

@@ -16,7 +16,7 @@ function SubmitButton() {
       className="button-primary mt-4 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={pending}
     >
-      {pending ? "Slanje..." : "Posalji narudzbinu"}
+      {pending ? "Slanje..." : "Pošalji narudžbinu"}
     </button>
   );
 }
@@ -30,10 +30,10 @@ export function OrderForm({ product }: { product: Product }) {
   return (
     <form action={formAction} className="mt-6 space-y-4">
       <input type="hidden" name="productId" value={product.id} />
-      <div className="rounded-2xl border border-black/10 bg-white p-4 text-sm text-slate-600">
-        <p className="text-slate-900">Pregled narudzbine</p>
+      <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 text-sm text-slate-600 dark:text-slate-300">
+        <p className="text-slate-900 dark:text-white">Pregled narudžbine</p>
         <p>{product.name}</p>
-        <p className="text-slate-900">{formatPrice(product.priceCents)}</p>
+        <p className="text-slate-900 dark:text-white">{formatPrice(product.priceCents)}</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <input

@@ -9,11 +9,14 @@ export const orderSchema = z.object({
 });
 
 export const eventRegistrationSchema = z.object({
-  firstName: z.string().min(2, "Ime je obavezno"),
-  lastName: z.string().min(2, "Prezime je obavezno"),
+  fullName: z
+    .string()
+    // Can be a single word (e.g. only first name)
+    .min(2, "Ime (i prezime) su obavezni"),
   email: z.string().email("Unesite ispravan email"),
+  phone: z.string().min(6, "Telefon je obavezan"),
   carModel: z.string().min(2, "Model automobila je obavezan"),
-  country: z.string().min(2, "Drzava je obavezna"),
+  country: z.string().min(2, "Država je obavezna"),
   city: z.string().min(2, "Grad je obavezan"),
   arrivingWithTrailer: z.boolean(),
   additionalInfo: z.string().max(1000).optional().default(""),

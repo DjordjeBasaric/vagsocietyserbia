@@ -18,6 +18,59 @@ function hasCloudinaryConfig() {
   return Boolean(cloudName && cloudKey && cloudSecret);
 }
 
+function isSupportedImageForCompression(file: File) {
+  const type = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
+  const isJpeg =
+    type === "image/jpeg" ||
+    type === "image/jpg" ||
+    name.endsWith(".jpg") ||
+    name.endsWith(".jpeg");
+  const isPng = type === "image/png" || name.endsWith(".png");
+  const isHeic =
+    type === "image/heic" ||
+    type === "image/heif" ||
+    name.endsWith(".heic") ||
+    name.endsWith(".heif");
+  return isJpeg || isPng || isHeic;
+}
+
+async function compressForStorage(file: File): Promise<{ buffer: Buffer; filename: string; mime: string }> {
+  const original = Buffer.from(await file.arrayBuffer());
+  const safeBase = (file.name || "upload").replace(/[^a-zA-Z0-9.-]/g, "-");
+  const baseNoExt = safeBase.replace(/\.[^.]+$/, "");
+
+  // If we can't/shouldn't process it, keep original
+  if (!isSupportedImageForCompression(file)) {
+    return { buffer: original, filename: safeBase, mime: file.type || "application/octet-stream" };
+  }
+
+  try {
+    const sharpMod: any = await import("sharp");
+    const sharp = sharpMod?.default ?? sharpMod;
+
+    const outBuffer: Buffer = await sharp(original, { failOn: "none" })
+      .rotate()
+      .resize({
+        width: 1600,
+        height: 1600,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer();
+
+    // If not smaller, keep original
+    if (outBuffer.length >= original.length) {
+      return { buffer: original, filename: safeBase, mime: file.type || "application/octet-stream" };
+    }
+
+    return { buffer: outBuffer, filename: `${baseNoExt || "upload"}.jpg`, mime: "image/jpeg" };
+  } catch {
+    return { buffer: original, filename: safeBase, mime: file.type || "application/octet-stream" };
+  }
+}
+
 async function uploadToCloudinary(
   file: File,
   registrationId: string
@@ -34,13 +87,13 @@ async function uploadToCloudinary(
     .update(signatureBase)
     .digest("hex");
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const blob = new Blob([buffer], {
-    type: file.type || "application/octet-stream",
+  const processed = await compressForStorage(file);
+  const blob = new Blob([processed.buffer], {
+    type: processed.mime || "application/octet-stream",
   });
 
   const form = new FormData();
-  form.append("file", blob, file.name || "upload");
+  form.append("file", blob, processed.filename || file.name || "upload");
   form.append("api_key", cloudKey);
   form.append("timestamp", String(timestamp));
   form.append("folder", folder);
@@ -90,12 +143,10 @@ export async function storeEventImages(
 
   const stored: StoredFile[] = [];
   for (const file of files) {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
-    const filename = `${Date.now()}-${safeName}`;
+    const processed = await compressForStorage(file);
+    const filename = `${Date.now()}-${processed.filename}`;
     const filepath = path.join(eventDir, filename);
-    await writeFile(filepath, buffer);
+    await writeFile(filepath, processed.buffer);
 
     stored.push({
       url: `/uploads/events/${registrationId}/${filename}`,

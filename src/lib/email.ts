@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 type EmailPayload = {
   to: string;
   subject: string;
@@ -7,36 +5,43 @@ type EmailPayload = {
   text: string;
 };
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = Number(process.env.SMTP_PORT || 587);
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASSWORD;
-const smtpFrom = process.env.SMTP_FROM || "no-reply@vagsocietyserbia.com";
-const smtpSecure = process.env.SMTP_SECURE === "true" || smtpPort === 465;
+let resendClientPromise: Promise<import("resend").Resend> | null = null;
 
-function getTransporter() {
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    throw new Error("Nedostaje SMTP konfiguracija");
+async function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+
+  if (!resendClientPromise) {
+    resendClientPromise = (async () => {
+      const { Resend } = await import("resend");
+      return new Resend(apiKey);
+    })();
   }
 
-  return nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpSecure,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-  });
+  return await resendClientPromise;
 }
 
 export async function sendEmail(payload: EmailPayload) {
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: smtpFrom,
-    to: payload.to,
-    subject: payload.subject,
-    text: payload.text,
-    html: payload.html,
-  });
+  const resend = await getResendClient();
+  const from = process.env.RESEND_FROM;
+
+  if (!resend || !from) {
+    console.warn(
+      "[Email] Email nije poslat - nedostaje RESEND_API_KEY ili RESEND_FROM"
+    );
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from,
+      to: payload.to,
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
+  } catch (error) {
+    console.error("[Email] Greška pri slanju emaila:", error);
+    throw error; // Baci grešku da bi se znalo da email nije poslat
+  }
 }

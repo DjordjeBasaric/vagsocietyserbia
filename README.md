@@ -10,7 +10,7 @@ Full-stack Next.js (App Router) application for the VagSocietySerbia automobile 
 - NextAuth credentials for admin login
 - Server Actions for mutations
 - Zod validation
-- Nodemailer email delivery
+- Resend email delivery
 - Local file uploads (cloud-ready structure)
 
 ## Setup
@@ -21,19 +21,25 @@ Full-stack Next.js (App Router) application for the VagSocietySerbia automobile 
 npm install
 ```
 
-2) Configure environment variables
+2) Configure environment variables (local)
 
 ```bash
 cp .env.example .env
 ```
 
-3) Initialize database
+3) Start local Postgres (Docker)
+
+```bash
+npm run db:up
+```
+
+4) Initialize database
 
 ```bash
 npm run prisma:migrate
 ```
 
-4) Create an admin user
+5) Create an admin user
 
 ```bash
 ADMIN_SEED_EMAIL="admin@vagsocietyserbia.com" \
@@ -42,7 +48,7 @@ ADMIN_SEED_NAME="VagSocietySerbia Admin" \
 npm run create-admin
 ```
 
-5) Run the app
+6) Run the app
 
 ```bash
 npm run dev
@@ -57,7 +63,7 @@ npm run dev
 
 ## Notes
 
-- Orders and event registrations send emails via SMTP.
+- Orders and event registrations send emails via Resend.
 - Event registration uploads are stored locally under `public/uploads` unless Cloudinary is configured.
 - Payment integration can be added later to the order flow.
 
@@ -65,19 +71,19 @@ npm run dev
 
 1) Push the repo to GitHub.
 2) Create a Postgres database on Neon (or Supabase).
-3) Set `DATABASE_URL` in Vercel and run:
+3) In Vercel project settings, add env vars:
 
-```bash
-npx prisma migrate deploy
-```
+- `DATABASE_URL` (recommended: Neon pooled URL for runtime)
+- `DIRECT_URL` (recommended: Neon direct/non-pooled URL for migrations)
 
-4) Add env vars in Vercel:
+4) Deploy. Vercel will run `vercel-build`, which executes `prisma migrate deploy` and then builds Next.js.
 
-- `DATABASE_URL`
+5) Add the rest env vars in Vercel:
+
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
 - `ADMIN_EMAIL`
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`
+- `RESEND_API_KEY`, `RESEND_FROM`
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_FOLDER`
 
-5) Redeploy. Uploads will go to Cloudinary, and images will work with Next/Image.
+6) Redeploy. Uploads will go to Cloudinary, and images will work with Next/Image.

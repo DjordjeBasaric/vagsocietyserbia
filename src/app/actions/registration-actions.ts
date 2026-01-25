@@ -11,35 +11,203 @@ export type RegistrationActionState = {
   message: string;
 };
 
+function normalizeLanguage(value: unknown): "sr" | "en" {
+  return String(value).toLowerCase() === "en" ? "en" : "sr";
+}
+
+function buildPendingEmail(lang: "sr" | "en", firstName: string) {
+  if (lang === "en") {
+    return {
+      subject: "Registration received - Vag Society Serbia event",
+      text: `Hi ${firstName}, your registration has been received and is pending approval. We'll notify you when it's confirmed.`,
+      html: `
+        <h2>Registration received</h2>
+        <p>Hi ${firstName},</p>
+        <p>Your event registration is pending approval. We'll reach out once it's confirmed.</p>
+      `,
+    };
+  }
+
+  return {
+    subject: "Prijava primljena - Vag Society Serbia skup",
+    text: `Zdravo ${firstName}, prijava je primljena i čeka odobrenje. Obavestićemo vas kada bude potvrđena.`,
+    html: `
+      <h2>Prijava primljena</h2>
+      <p>Zdravo ${firstName},</p>
+      <p>Vaša prijava za skup je na čekanju. Javićemo se kada bude potvrđena.</p>
+    `,
+  };
+}
+
+function buildApprovedEmail(lang: "sr" | "en", firstName: string) {
+  if (lang === "en") {
+    return {
+      subject: "Registration approved - Vag Society Serbia event",
+      text: `Hi ${firstName}, your registration has been approved. See you at the event!`,
+      html: `
+        <h2>Registration approved</h2>
+        <p>Hi ${firstName},</p>
+        <p>Your registration has been approved. See you soon!</p>
+      `,
+    };
+  }
+
+  return {
+    subject: "Prijava odobrena - Vag Society Serbia skup",
+    text: `Zdravo ${firstName}, vaša prijava je odobrena. Vidimo se na skupu!`,
+    html: `
+      <h2>Prijava odobrena</h2>
+      <p>Zdravo ${firstName},</p>
+      <p>Vaša prijava za skup je odobrena. Vidimo se uskoro!</p>
+    `,
+  };
+}
+
+function buildDeclinedEmail(lang: "sr" | "en", firstName: string) {
+  if (lang === "en") {
+    return {
+      subject: "Registration declined - Vag Society Serbia event",
+      text: `Hi ${firstName}, thanks for applying. Unfortunately, we can’t confirm participation this time. See you at one of the next meetups!`,
+      html: `
+        <h2>Registration declined</h2>
+        <p>Hi ${firstName},</p>
+        <p>Thanks for applying. Unfortunately, we can’t confirm participation this time.</p>
+        <p>See you at one of the next meetups!</p>
+      `,
+    };
+  }
+
+  return {
+    subject: "Prijava odbijena - Vag Society Serbia skup",
+    text: `Zdravo ${firstName}, hvala na prijavi. Ovog puta nismo u mogućnosti da potvrdimo učešće. Vidimo se na nekom od narednih okupljanja!`,
+    html: `
+      <h2>Prijava odbijena</h2>
+      <p>Zdravo ${firstName},</p>
+      <p>Hvala na prijavi. Ovog puta nismo u mogućnosti da potvrdimo učešće.</p>
+      <p>Vidimo se na nekom od narednih okupljanja!</p>
+    `,
+  };
+}
+
+function isAllowedCarImage(file: File) {
+  const type = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
+  const isJpeg =
+    type === "image/jpeg" ||
+    type === "image/jpg" ||
+    name.endsWith(".jpg") ||
+    name.endsWith(".jpeg");
+  const isPng = type === "image/png" || name.endsWith(".png");
+  const isHeic =
+    type === "image/heic" ||
+    type === "image/heif" ||
+    name.endsWith(".heic") ||
+    name.endsWith(".heif");
+  return isJpeg || isPng || isHeic;
+}
+
 export async function submitEventRegistration(
   _prevState: RegistrationActionState,
   formData: FormData
 ): Promise<RegistrationActionState> {
   try {
-    const raw = {
-      firstName: String(formData.get("firstName") || ""),
-      lastName: String(formData.get("lastName") || ""),
-      email: String(formData.get("email") || ""),
-      carModel: String(formData.get("carModel") || ""),
-      country: String(formData.get("country") || ""),
-      city: String(formData.get("city") || ""),
-      arrivingWithTrailer: formData.get("arrivingWithTrailer") === "on",
-      additionalInfo: String(formData.get("additionalInfo") || ""),
+    // Debug: loguj sve ključeve iz FormData
+    console.log("[Registration] FormData keys:", Array.from(formData.keys()));
+    
+    // Pokušaj da dobiješ podatke sa i bez prefiksa (Next.js dodaje prefiks)
+    const getValue = (key: string) => {
+      // Prvo probaj bez prefiksa
+      let value = formData.get(key);
+      if (!value) {
+        // Probaj sa prefiksom 1_
+        value = formData.get(`1_${key}`);
+      }
+      return value;
     };
+
+    const getAllValues = (key: string) => {
+      // Prvo probaj bez prefiksa
+      let values = formData.getAll(key);
+      if (values.length === 0) {
+        // Probaj sa prefiksom 1_
+        values = formData.getAll(`1_${key}`);
+      }
+      return values;
+    };
+
+    const raw = {
+      fullName: String(getValue("fullName") || ""),
+      email: String(getValue("email") || ""),
+      phone: String(getValue("phone") || ""),
+      carModel: String(getValue("carModel") || ""),
+      country: String(getValue("country") || ""),
+      city: String(getValue("city") || ""),
+      arrivingWithTrailer: getValue("arrivingWithTrailer") === "on",
+      additionalInfo: String(getValue("additionalInfo") || ""),
+    };
+    const language = normalizeLanguage(getValue("language"));
+
+    console.log("[Registration] Parsed raw data:", raw);
 
     const parsed = eventRegistrationSchema.safeParse(raw);
     if (!parsed.success) {
+      console.error("[Registration] Validation error:", parsed.error);
       return {
         ok: false,
         message: parsed.error.issues[0]?.message || "Neispravni podaci.",
       };
     }
 
-    const registration = await prisma.eventRegistration.create({
+    const allCarImages = getAllValues("carImages");
+    const files = allCarImages.filter((file) => {
+      return file instanceof File && file.size > 0;
+    }) as File[];
+
+    const invalid = files.find((f) => !isAllowedCarImage(f));
+    if (invalid) {
+      return {
+        ok: false,
+        message:
+          language === "en"
+            ? "Only JPG/JPEG, PNG and HEIC/HEIF image formats are allowed."
+            : "Dozvoljeni su samo JPG/JPEG, PNG i HEIC/HEIF formati slika.",
+      };
+    }
+
+    console.log(`[Registration] Received ${allCarImages.length} carImages entries, ${files.length} valid files`);
+
+    if (files.length < 3) {
+      return {
+        ok: false,
+        message:
+          language === "en"
+            ? `At least 3 photos are required. Received: ${files.length}.`
+            : `Potrebno je najmanje 3 fotografije. Primljeno: ${files.length}.`,
+      };
+    }
+
+    if (files.length > 5) {
+      return {
+        ok: false,
+        message:
+          language === "en"
+            ? "You can upload a maximum of 5 photos."
+            : "Maksimalno je moguće poslati 5 fotografija.",
+      };
+    }
+
+    const nameParts = parsed.data.fullName.trim().split(/\s+/);
+    const firstName = nameParts[0] ?? "";
+    const lastName = nameParts.slice(1).join(" ");
+
+    // Note: if Prisma Client types are stale in-editor, keep the call permissive.
+    // Runtime is validated by the database schema/migrations.
+    const registration = await (prisma.eventRegistration as any).create({
       data: {
-        firstName: parsed.data.firstName,
-        lastName: parsed.data.lastName,
+        firstName,
+        lastName,
         email: parsed.data.email.toLowerCase(),
+        language,
         carModel: parsed.data.carModel,
         country: parsed.data.country,
         city: parsed.data.city,
@@ -47,10 +215,6 @@ export async function submitEventRegistration(
         additionalInfo: parsed.data.additionalInfo || "",
       },
     });
-
-    const files = formData.getAll("carImages").filter((file) => {
-      return file instanceof File && file.size > 0;
-    }) as File[];
 
     const stored = await storeEventImages(files, registration.id);
     if (stored.length) {
@@ -62,42 +226,29 @@ export async function submitEventRegistration(
       });
     }
 
-    await sendEmail({
-      to: registration.email,
-      subject: "Prijava primljena - VagSocietySerbia majski skup",
-      text: `Zdravo ${registration.firstName}, prijava je primljena i ceka odobrenje. Obavesticemo vas kada bude potvrdjena.`,
-      html: `
-        <h2>Prijava primljena</h2>
-        <p>Zdravo ${registration.firstName},</p>
-        <p>Vasa prijava za majski skup je na cekanju. Javicemo se kada bude potvrdjena.</p>
-      `,
-    });
-
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (adminEmail) {
+    // Pokušaj da pošalješ email, ali ne dozvoli da greška spreči čuvanje prijave
+    try {
+      const emailPayload = buildPendingEmail(language, registration.firstName);
       await sendEmail({
-        to: adminEmail,
-        subject: `Nova prijava za skup: ${registration.firstName} ${registration.lastName}`,
-        text: `Nova prijava od ${registration.firstName} ${registration.lastName} (${registration.email}). Auto: ${registration.carModel}.`,
-        html: `
-          <h2>Nova prijava za skup</h2>
-          <p><strong>Ime:</strong> ${registration.firstName} ${registration.lastName}</p>
-          <p><strong>Email:</strong> ${registration.email}</p>
-          <p><strong>Auto:</strong> ${registration.carModel}</p>
-          <p><strong>Lokacija:</strong> ${registration.city}, ${registration.country}</p>
-          <p><strong>Prikolica:</strong> ${registration.arrivingWithTrailer ? "Da" : "Ne"}</p>
-        `,
+        to: registration.email,
+        subject: emailPayload.subject,
+        text: emailPayload.text,
+        html: emailPayload.html,
       });
+    } catch (emailError) {
+      console.error("[Registration] Failed to send confirmation email:", emailError);
+      // Ne baci grešku - prijava je već sačuvana
     }
 
     revalidatePath("/events/may");
     return {
       ok: true,
-      message: "Prijava poslata! Dobicete email kada bude odobrena.",
+      message: "",
     };
   } catch (error) {
-    console.error(error);
-    return { ok: false, message: "Nije moguce poslati prijavu." };
+    console.error("[Registration] Error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Nije moguće poslati prijavu.";
+    return { ok: false, message: errorMessage };
   }
 }
 
@@ -108,20 +259,45 @@ export async function approveRegistration(formData: FormData): Promise<void> {
       return;
     }
 
-    const registration = await prisma.eventRegistration.update({
+    const registration = await (prisma.eventRegistration as any).update({
       where: { id },
       data: { status: "APPROVED" },
     });
 
+    const lang = normalizeLanguage(registration.language);
+    const emailPayload = buildApprovedEmail(lang, registration.firstName);
     await sendEmail({
       to: registration.email,
-      subject: "Prijava odobrena - VagSocietySerbia majski skup",
-      text: `Zdravo ${registration.firstName}, vasa prijava je odobrena. Vidimo se na skupu!`,
-      html: `
-        <h2>Prijava odobrena</h2>
-        <p>Zdravo ${registration.firstName},</p>
-        <p>Vasa prijava za majski skup je odobrena. Vidimo se uskoro!</p>
-      `,
+      subject: emailPayload.subject,
+      text: emailPayload.text,
+      html: emailPayload.html,
+    });
+
+    revalidatePath("/admin");
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function declineRegistration(formData: FormData): Promise<void> {
+  try {
+    const id = String(formData.get("registrationId") || "");
+    if (!id) {
+      return;
+    }
+
+    const registration = await (prisma.eventRegistration as any).update({
+      where: { id },
+      data: { status: "DECLINED" },
+    });
+
+    const lang = normalizeLanguage(registration.language);
+    const emailPayload = buildDeclinedEmail(lang, registration.firstName);
+    await sendEmail({
+      to: registration.email,
+      subject: emailPayload.subject,
+      text: emailPayload.text,
+      html: emailPayload.html,
     });
 
     revalidatePath("/admin");

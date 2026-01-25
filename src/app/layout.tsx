@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { cookies } from "next/headers";
+import Script from "next/script";
 import "./globals.css";
+import { SiteShell } from "@/app/SiteShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,20 +18,20 @@ export const metadata: Metadata = {
     template: "%s | VagSocietySerbia",
   },
   description:
-    "Zvanicni sajt VagSocietySerbia - zajednica ljubitelja VAG kulture, dogadjaja i ekskluzivnih proizvoda.",
+    "Zvanični sajt VagSocietySerbia - zajednica ljubitelja VAG kulture, događaja i ekskluzivnih proizvoda.",
   keywords: [
     "VAG",
     "auto klub",
     "automobili",
     "Srbija",
     "VagSocietySerbia",
-    "dogadjaji",
+    "događaji",
     "proizvodi",
   ],
   openGraph: {
     title: "VagSocietySerbia | Automobilski klub",
     description:
-      "Pridruzi se VagSocietySerbia zajednici za dogadjaje, vrhunsku opremu i najbolje od VAG kulture.",
+      "Pridruži se VagSocietySerbia zajednici za događaje, vrhunsku opremu i najbolje od VAG kulture.",
     url: "https://vagsocietyserbia.com",
     siteName: "VagSocietySerbia",
     locale: "sr_RS",
@@ -36,15 +39,32 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+const themeScript = `
+(() => {
+  try {
+    const storageKey = "vss-theme";
+    const stored = localStorage.getItem(storageKey);
+    const theme = stored === "light" || stored === "dark" ? stored : "light";
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  } catch {}
+})();
+`;
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("vss-language")?.value === "en" ? "en" : "sr";
+
   return (
-    <html lang="sr">
-      <body className={`${inter.variable} antialiased`}>
-        {children}
+    <html lang={lang} suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased dark:bg-slate-950 dark:text-slate-50`}>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

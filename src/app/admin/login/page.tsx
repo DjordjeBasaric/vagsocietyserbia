@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     });
 
     if (result?.error) {
-      setError("Neispravni podaci. Pokusajte ponovo.");
+      setError("Neispravni podaci. Pokušajte ponovo.");
     } else {
       router.push("/admin");
     }

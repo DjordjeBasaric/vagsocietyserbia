@@ -55,20 +55,21 @@ export function RegistrationImageGallery({ images }: { images: GalleryImage[] })
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2">
         {images.map((image, index) => (
           <button
             key={image.id}
             type="button"
             onClick={() => setActiveIndex(index)}
-            className="group relative overflow-hidden rounded-2xl border border-black/10 bg-white"
+            className="group relative overflow-hidden rounded-xl border border-black/10 bg-white"
           >
             <Image
               src={image.url}
               alt="Slika automobila"
-              width={400}
-              height={300}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+              width={300}
+              height={225}
+              sizes="(max-width: 768px) 33vw, 200px"
+              className="aspect-[4/3] h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             />
             <span className="absolute inset-0 bg-black/0 transition group-hover:bg-black/5" />
           </button>

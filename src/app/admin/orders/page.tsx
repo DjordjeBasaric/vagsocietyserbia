@@ -16,7 +16,7 @@ function OrderCard({ order }: { order: Order }) {
         <p className="text-sm text-slate-500">{order.phone}</p>
         <p className="text-lg text-slate-900">{order.productNameSnapshot}</p>
         <p className="text-sm text-slate-500">
-          Kolicina: {order.quantity} · {formatPrice(order.unitPriceCents)}
+          Količina: {order.quantity} · {formatPrice(order.unitPriceCents)}
         </p>
         <p className="text-sm text-slate-600">
           Ukupno: {formatPrice(order.unitPriceCents * order.quantity)}
@@ -35,12 +35,12 @@ function OrderCard({ order }: { order: Order }) {
           defaultValue={order.status}
           className="field max-w-[180px]"
         >
-          <option value="PENDING">Na cekanju</option>
+          <option value="PENDING">Na čekanju</option>
           <option value="DECLINED">Odbijeno</option>
           <option value="SHIPPED">Poslato</option>
         </select>
         <button type="submit" className="button-outline">
-          Sacuvaj
+          Sačuvaj
         </button>
       </form>
     </div>
@@ -58,24 +58,24 @@ export default async function AdminOrdersPage() {
 
   return (
     <AdminShell
-      title="Narudzbine"
-      subtitle="Upravljanje statusom narudzbina"
+      title="Narudžbine"
+      subtitle="Upravljanje statusom narudžbina"
       active="orders"
     >
       {orders.length === 0 ? (
         <div className="glass-panel rounded-3xl p-8 text-slate-600">
-          Nema narudzbina.
+          Nema narudžbina.
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg text-slate-900">Na cekanju</h3>
+              <h3 className="text-lg text-slate-900">Na čekanju</h3>
               <span className="chip">{pendingOrders.length}</span>
             </div>
             {pendingOrders.length === 0 ? (
               <div className="glass-panel rounded-3xl p-6 text-slate-600">
-                Nema narudzbina na cekanju.
+                Nema narudžbina na čekanju.
               </div>
             ) : (
               pendingOrders.map((order) => (
@@ -91,7 +91,7 @@ export default async function AdminOrdersPage() {
             </div>
             {declinedOrders.length === 0 ? (
               <div className="glass-panel rounded-3xl p-6 text-slate-600">
-                Nema odbijenih narudzbina.
+                Nema odbijenih narudžbina.
               </div>
             ) : (
               declinedOrders.map((order) => (
@@ -107,7 +107,7 @@ export default async function AdminOrdersPage() {
             </div>
             {shippedOrders.length === 0 ? (
               <div className="glass-panel rounded-3xl p-6 text-slate-600">
-                Nema poslatih narudzbina.
+                Nema poslatih narudžbina.
               </div>
             ) : (
               shippedOrders.map((order) => (

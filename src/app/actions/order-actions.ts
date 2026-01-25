@@ -64,27 +64,27 @@ export async function submitOrder(
 
     await sendEmail({
       to: adminEmail,
-      subject: `Nova narudzbina: ${product.name}`,
-      text: `Nova narudzbina od ${order.fullName} (${order.email}). Proizvod: ${product.name} x1 (${priceLabel}). Adresa: ${order.shippingAddress}. Telefon: ${order.phone}.`,
+      subject: `Nova narudžbina: ${product.name}`,
+      text: `Nova narudžbina od ${order.fullName} (${order.email}). Proizvod: ${product.name} x1 (${priceLabel}). Adresa: ${order.shippingAddress}. Telefon: ${order.phone}.`,
       html: `
-        <h2>Nova VagSocietySerbia narudzbina</h2>
+        <h2>Nova VagSocietySerbia narudžbina</h2>
         <p><strong>Kupac:</strong> ${order.fullName} (${order.email})</p>
         <p><strong>Proizvod:</strong> ${product.name} x1 (${priceLabel})</p>
         <p><strong>Telefon:</strong> ${order.phone}</p>
         <p><strong>Adresa:</strong> ${order.shippingAddress}</p>
-        <p><strong>ID narudzbine:</strong> ${order.id}</p>
+        <p><strong>ID narudžbine:</strong> ${order.id}</p>
       `,
     });
 
     await sendEmail({
       to: order.email,
-      subject: "Potvrda narudzbine - VagSocietySerbia",
-      text: `Hvala ${order.fullName}! Primili smo vasu narudzbinu za ${product.name} x1. Kontaktiracemo vas uskoro sa detaljima isporuke i placanja.`,
+      subject: "Potvrda narudžbine - VagSocietySerbia",
+      text: `Hvala ${order.fullName}! Primili smo vašu narudžbinu za ${product.name} x1. Kontaktiraćemo vas uskoro sa detaljima isporuke i plaćanja.`,
       html: `
-        <h2>Hvala na narudzbini, ${order.fullName}!</h2>
-        <p>Vasa narudzbina za <strong>${product.name} x1</strong> je potvrdjena.</p>
-        <p>Uskoro saljemo detalje isporuke i placanja.</p>
-        <p>ID narudzbine: ${order.id}</p>
+        <h2>Hvala na narudžbini, ${order.fullName}!</h2>
+        <p>Vaša narudžbina za <strong>${product.name} x1</strong> je potvrđena.</p>
+        <p>Uskoro šaljemo detalje isporuke i plaćanja.</p>
+        <p>ID narudžbine: ${order.id}</p>
       `,
     });
 
@@ -92,11 +92,11 @@ export async function submitOrder(
     revalidatePath("/admin/orders");
     return {
       ok: true,
-      message: "Narudzbina primljena! Proverite email za potvrdu.",
+      message: "Narudžbina primljena! Proverite email za potvrdu.",
     };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Doslo je do greske. Pokusajte ponovo." };
+    return { ok: false, message: "Došlo je do greške. Pokušajte ponovo." };
   }
 }
 

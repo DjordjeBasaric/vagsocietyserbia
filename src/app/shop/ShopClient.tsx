@@ -8,6 +8,8 @@ import {
   submitCartOrder,
   type CartActionState,
 } from "@/app/actions/cart-actions";
+import { useLanguage } from "@/lib/language-context";
+import { t } from "@/lib/translations";
 
 export type ShopProduct = {
   id: string;
@@ -25,12 +27,14 @@ type CartItem = {
 
 type CategoryFilter = ShopProduct["category"];
 
-const categories: { key: CategoryFilter; label: string }[] = [
-  { key: "APPAREL", label: "Odeca" },
-  { key: "ACCESSORIES", label: "Aksesoari" },
-  { key: "STICKERS", label: "Nalepnice" },
-];
-const defaultCategory = categories[0]?.key ?? "APPAREL";
+function getCategories(lang: "sr" | "en"): { key: CategoryFilter; label: string }[] {
+  return [
+    { key: "APPAREL", label: t("shop.categories.APPAREL", lang) },
+    { key: "ACCESSORIES", label: t("shop.categories.ACCESSORIES", lang) },
+    { key: "STICKERS", label: t("shop.categories.STICKERS", lang) },
+  ];
+}
+const defaultCategory: CategoryFilter = "APPAREL";
 
 const initialState: CartActionState = { ok: false, message: "" };
 
@@ -42,12 +46,14 @@ function CheckoutButton({ disabled }: { disabled: boolean }) {
       className="button-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
       disabled={pending || disabled}
     >
-      {pending ? "Obrada..." : "Posalji narudzbinu"}
+      {pending ? "Obrada..." : "Pošalji narudžbinu"}
     </button>
   );
 }
 
 export function ShopClient({ products }: { products: ShopProduct[] }) {
+  const { language } = useLanguage();
+  const categories = React.useMemo(() => getCategories(language), [language]);
   const [category, setCategory] = React.useState<CategoryFilter>(defaultCategory);
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [isCartOpen, setCartOpen] = React.useState(false);
@@ -173,8 +179,8 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
               onClick={() => setCategory(item.key)}
               className={
                 item.key === category
-                  ? "rounded-full bg-black px-4 py-2 text-sm font-medium text-white"
-                  : "rounded-full border border-black/10 px-4 py-2 text-sm text-slate-600"
+                  ? "rounded-full bg-black dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-black"
+                  : "rounded-full border border-black/10 dark:border-white/10 px-4 py-2 text-sm text-slate-600 dark:text-slate-300"
               }
             >
               {item.label}
@@ -183,17 +189,17 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-slate-500">
+      <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span>
-          Prikazano {filteredProducts.length} od {products.length} proizvoda
+          {t("shop.showingProducts", language, { showing: filteredProducts.length, total: products.length })}
         </span>
       </div>
 
       {filteredProducts.length === 0 ? (
         <div className="glass-panel rounded-3xl p-10 text-center">
-          <p className="text-lg text-slate-900">Nema pronadjenih proizvoda.</p>
-          <p className="mt-2 text-sm text-slate-500">
-            Probaj drugu pretragu ili kategoriju.
+          <p className="text-lg text-slate-900 dark:text-white">{t("shop.noProductsFound", language)}</p>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            {t("shop.tryDifferentSearch", language)}
           </p>
         </div>
       ) : (
@@ -201,7 +207,7 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
           {groupedProducts.map((group) => (
             <section key={group.key} className="space-y-6">
               <div>
-                <p className="section-subtitle">Kategorija</p>
+                <p className="section-subtitle">{t("shop.category", language)}</p>
                 <h2 className="section-title">{group.label}</h2>
               </div>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -210,7 +216,7 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                     key={product.id}
                     className="glass-panel flex h-full flex-col overflow-hidden rounded-3xl"
                   >
-                    <div className="border-b border-black/10 bg-white">
+                    <div className="border-b border-black/10 dark:border-white/10 bg-white dark:bg-black">
                       <img
                         src={product.imageUrl}
                         alt={product.name}
@@ -220,16 +226,16 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                     <div className="flex h-full flex-col gap-4 p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-medium text-slate-900">
+                          <p className="text-sm font-medium text-slate-900 dark:text-white">
                             {product.name}
                           </p>
-                          <p className="mt-1 text-lg text-slate-600">
+                          <p className="mt-1 text-lg text-slate-600 dark:text-slate-300">
                             {formatPrice(product.priceCents)}
                           </p>
                         </div>
                         <span className="chip">{group.label}</span>
                       </div>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
                         {product.description}
                       </p>
                       <button
@@ -237,7 +243,7 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                         onClick={() => addToCart(product.id)}
                         className="button-primary mt-auto w-full"
                       >
-                        Dodaj u korpu
+                        {t("shop.addToCart", language)}
                       </button>
                     </div>
                   </div>
@@ -251,7 +257,7 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
       <button
         type="button"
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-24 right-6 z-40 rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-white hover:text-black hover:border hover:border-black/20 md:bottom-6"
+        className="fixed bottom-24 right-6 z-40 rounded-full bg-black dark:bg-white px-5 py-3 text-sm font-medium text-white dark:text-black transition hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white hover:border hover:border-black/20 dark:hover:border-white/20 md:bottom-6"
       >
         Korpa ({cart.reduce((sum, item) => sum + item.quantity, 0)})
       </button>
@@ -262,33 +268,33 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
           onClick={() => setCartOpen(false)}
         >
           <div
-            className="ml-auto flex h-full w-full max-w-md flex-col bg-white p-6 md:rounded-l-3xl md:border-l md:border-black/10"
+            className="ml-auto flex h-full w-full max-w-md flex-col bg-white dark:bg-black p-6 md:rounded-l-3xl md:border-l md:border-black/10 dark:md:border-white/10"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="section-subtitle">Vasa korpa</p>
-                <h2 className="text-2xl text-slate-900">Pregled narudzbine</h2>
+                <p className="section-subtitle">{t("shop.cartTitle", language)}</p>
+                <h2 className="text-2xl text-slate-900 dark:text-white">{t("shop.cartReview", language)}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setCartOpen(false)}
                 className="button-ghost"
               >
-                Zatvori
+                {t("shop.cartClose", language)}
               </button>
             </div>
 
             <div className="mt-6 flex-1 space-y-4 overflow-y-auto pr-2">
               {cartItems.length === 0 ? (
-                <div className="rounded-3xl border border-black/10 bg-white p-6 text-sm text-slate-600">
-                  Korpa je prazna. Dodajte proizvode da nastavite.
+                <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-6 text-sm text-slate-600 dark:text-slate-300">
+                  {t("shop.cartEmpty", language)}
                 </div>
               ) : (
                 cartItems.map((item) => (
                   <div
                     key={item.productId}
-                    className="flex items-center gap-4 rounded-3xl border border-black/10 bg-white p-4"
+                    className="flex items-center gap-4 rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4"
                   >
                     <img
                       src={item.product.imageUrl}
@@ -296,10 +302,10 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                       className="h-16 w-16 rounded-2xl object-cover"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white">
                         {item.product.name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {formatPrice(item.product.priceCents)}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
@@ -308,11 +314,11 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                           onClick={() =>
                             updateQuantity(item.productId, item.quantity - 1)
                           }
-                          className="rounded-full border border-black/10 px-3 py-1 text-sm"
+                          className="rounded-full border border-black/10 dark:border-white/10 px-3 py-1 text-sm text-slate-900 dark:text-white"
                         >
                           -
                         </button>
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-300">
                           {item.quantity}
                         </span>
                         <button
@@ -320,22 +326,22 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                           onClick={() =>
                             updateQuantity(item.productId, item.quantity + 1)
                           }
-                          className="rounded-full border border-black/10 px-3 py-1 text-sm"
+                          className="rounded-full border border-black/10 dark:border-white/10 px-3 py-1 text-sm text-slate-900 dark:text-white"
                         >
                           +
                         </button>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white">
                         {formatPrice(item.lineTotalCents)}
                       </p>
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.productId)}
-                        className="mt-2 text-xs text-slate-400"
+                        className="mt-2 text-xs text-slate-400 dark:text-slate-500"
                       >
-                        Ukloni
+                        {t("shop.remove", language)}
                       </button>
                     </div>
                   </div>
@@ -343,13 +349,13 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
               )}
             </div>
 
-            <div className="mt-6 rounded-3xl border border-black/10 bg-white p-6">
-              <div className="flex items-center justify-between text-sm text-slate-600">
-                <span>Medjuzbir</span>
+            <div className="mt-6 rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-6">
+              <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+                <span>Međuzbir</span>
                 <span>{formatPrice(totalCents)}</span>
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                Instrukcije za isporuku i placanje saljemo emailom.
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Instrukcije za isporuku i plaćanje šaljemo emailom.
               </p>
             </div>
 
@@ -365,9 +371,9 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                 />
                 <label
                   htmlFor="checkout-fullName"
-                  className="pointer-events-none absolute left-4 top-3 bg-white px-1 text-sm text-slate-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500"
+                  className="pointer-events-none absolute left-4 top-3 bg-white dark:bg-black px-1 text-sm text-slate-400 dark:text-slate-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500 dark:peer-focus:text-slate-400"
                 >
-                  Ime i prezime
+                  {t("shop.orderForm.fields.fullName", language)}
                 </label>
               </div>
               <div className="relative">
@@ -381,9 +387,9 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                 />
                 <label
                   htmlFor="checkout-email"
-                  className="pointer-events-none absolute left-4 top-3 bg-white px-1 text-sm text-slate-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500"
+                  className="pointer-events-none absolute left-4 top-3 bg-white dark:bg-black px-1 text-sm text-slate-400 dark:text-slate-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500 dark:peer-focus:text-slate-400"
                 >
-                  Email adresa
+                  {t("shop.orderForm.fields.email", language)}
                 </label>
               </div>
               <div className="relative">
@@ -397,9 +403,9 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                 />
                 <label
                   htmlFor="checkout-phone"
-                  className="pointer-events-none absolute left-4 top-3 bg-white px-1 text-sm text-slate-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500"
+                  className="pointer-events-none absolute left-4 top-3 bg-white dark:bg-black px-1 text-sm text-slate-400 dark:text-slate-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500 dark:peer-focus:text-slate-400"
                 >
-                  Telefon
+                  {t("shop.orderForm.fields.phone", language)}
                 </label>
               </div>
               <div className="relative">
@@ -412,9 +418,9 @@ export function ShopClient({ products }: { products: ShopProduct[] }) {
                 />
                 <label
                   htmlFor="checkout-shipping"
-                  className="pointer-events-none absolute left-4 top-3 bg-white px-1 text-sm text-slate-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500"
+                  className="pointer-events-none absolute left-4 top-3 bg-white dark:bg-black px-1 text-sm text-slate-400 dark:text-slate-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-xs peer-focus:text-slate-500 dark:peer-focus:text-slate-400"
                 >
-                  Adresa za isporuku
+                  {t("shop.orderForm.fields.shippingAddress", language)}
                 </label>
               </div>
               {state.message ? (

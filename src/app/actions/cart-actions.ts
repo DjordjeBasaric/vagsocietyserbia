@@ -73,7 +73,7 @@ export async function submitCartOrder(
     if (products.length !== productIds.length) {
       return {
         ok: false,
-        message: "Neki proizvodi vise nisu dostupni. Osvezite stranicu.",
+        message: "Neki proizvodi više nisu dostupni. Osvežite stranicu.",
       };
     }
 
@@ -137,41 +137,41 @@ export async function submitCartOrder(
 
     await sendEmail({
       to: adminEmail,
-      subject: `Nova narudzbina iz korpe od ${parsed.data.fullName}`,
-      text: `Nova narudzbina iz korpe od ${parsed.data.fullName} (${parsed.data.email}).\n\nStavke:\n${linesText}\n\nUkupno: ${formatPrice(totalCents)}\nAdresa: ${parsed.data.shippingAddress}\nTelefon: ${parsed.data.phone}\nID narudzbina: ${orders
+      subject: `Nova narudžbina iz korpe od ${parsed.data.fullName}`,
+      text: `Nova narudžbina iz korpe od ${parsed.data.fullName} (${parsed.data.email}).\n\nStavke:\n${linesText}\n\nUkupno: ${formatPrice(totalCents)}\nAdresa: ${parsed.data.shippingAddress}\nTelefon: ${parsed.data.phone}\nID narudžbina: ${orders
         .map((order) => order.id)
         .join(", ")}`,
       html: `
-        <h2>Nova narudzbina iz korpe - VagSocietySerbia</h2>
+        <h2>Nova narudžbina iz korpe - VagSocietySerbia</h2>
         <p><strong>Kupac:</strong> ${parsed.data.fullName} (${parsed.data.email})</p>
         <ul>${linesHtml}</ul>
         <p><strong>Ukupno:</strong> ${formatPrice(totalCents)}</p>
         <p><strong>Telefon:</strong> ${parsed.data.phone}</p>
         <p><strong>Adresa:</strong> ${parsed.data.shippingAddress}</p>
-        <p><strong>ID narudzbina:</strong> ${orders.map((order) => order.id).join(", ")}</p>
+        <p><strong>ID narudžbina:</strong> ${orders.map((order) => order.id).join(", ")}</p>
       `,
     });
 
     await sendEmail({
       to: parsed.data.email,
-      subject: "Potvrda narudzbine - VagSocietySerbia",
-      text: `Hvala ${parsed.data.fullName}! Primili smo vasu narudzbinu.\n\nStavke:\n${linesText}\n\nUkupno: ${formatPrice(
+      subject: "Potvrda narudžbine - VagSocietySerbia",
+      text: `Hvala ${parsed.data.fullName}! Primili smo vašu narudžbinu.\n\nStavke:\n${linesText}\n\nUkupno: ${formatPrice(
         totalCents
-      )}\n\nKontaktiracemo vas uskoro sa detaljima isporuke i placanja.`,
+      )}\n\nKontaktiraćemo vas uskoro sa detaljima isporuke i plaćanja.`,
       html: `
-        <h2>Hvala na narudzbini, ${parsed.data.fullName}!</h2>
-        <p>Vasa narudzbina je potvrdjena.</p>
+        <h2>Hvala na narudžbini, ${parsed.data.fullName}!</h2>
+        <p>Vaša narudžbina je potvrđena.</p>
         <ul>${linesHtml}</ul>
         <p><strong>Ukupno:</strong> ${formatPrice(totalCents)}</p>
-        <p>Uskoro saljemo detalje isporuke i placanja.</p>
+        <p>Uskoro šaljemo detalje isporuke i plaćanja.</p>
       `,
     });
 
     revalidatePath("/shop");
     revalidatePath("/admin/orders");
-    return { ok: true, message: "Narudzbina primljena! Proverite email." };
+    return { ok: true, message: "Narudžbina primljena! Proverite email." };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Ne mozemo da obradimo narudzbinu." };
+    return { ok: false, message: "Ne možemo da obradimo narudžbinu." };
   }
 }

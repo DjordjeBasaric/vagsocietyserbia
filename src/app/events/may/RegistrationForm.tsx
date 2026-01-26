@@ -138,6 +138,7 @@ export function RegistrationForm() {
     // Success: show modal and reset form for next submission.
     setShowSuccess(true);
     setIsSubmitting(false);
+    setFileSizeError(null); // Clear any file size error on success
 
     // Clear text fields
     setFormValues(initialValues);
@@ -315,6 +316,7 @@ export function RegistrationForm() {
     setFilesSelected(nextFiles);
     rebuildPreviews(nextFiles);
     syncInputFiles(nextFiles);
+    setFileSizeError(null); // Clear error when removing files
   };
 
   const isImageCountValid =

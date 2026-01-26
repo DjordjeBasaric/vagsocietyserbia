@@ -174,6 +174,32 @@ export async function submitEventRegistration(
       };
     }
 
+    // Check file sizes (Vercel max request body is 4.5MB, use 4MB total with margin)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB per file
+    const MAX_TOTAL_SIZE = 4 * 1024 * 1024; // 4MB total
+
+    const oversized = files.find((f) => f.size > MAX_FILE_SIZE);
+    if (oversized) {
+      return {
+        ok: false,
+        message:
+          language === "en"
+            ? `File "${oversized.name}" is too large (max 2MB per image). Please select smaller images.`
+            : `Fajl "${oversized.name}" je prevelik (max 2MB po slici). Molimo izaberite manje slike.`,
+      };
+    }
+
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE) {
+      return {
+        ok: false,
+        message:
+          language === "en"
+            ? "Total size of all images is too large (max 4MB). Please select fewer or smaller images."
+            : "Ukupna veličina svih slika je prevelika (max 4MB). Molimo izaberite manje ili manje slika.",
+      };
+    }
+
     console.log(`[Registration] Received ${allCarImages.length} carImages entries, ${files.length} valid files`);
 
     if (files.length < 3) {

@@ -103,6 +103,13 @@ export function RegistrationForm() {
 
   const minImages = 3;
   const maxImages = 5;
+  // Vercel max request body is 4.5MB. Use 4MB total with margin for safety.
+  const MAX_FILE_SIZE_MB = 2;
+  const MAX_TOTAL_SIZE_MB = 4;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
+
+  const [fileSizeError, setFileSizeError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     return () => {
@@ -156,14 +163,10 @@ export function RegistrationForm() {
     const type = (file.type || "").toLowerCase();
     const name = (file.name || "").toLowerCase();
 
-    // Keep GIF/SVG/HEIC as-is (canvas conversion would break/unsupported)
+    // Skip GIF/SVG (animated/vector) and anything non-image.
     if (
       type.includes("gif") ||
       type.includes("svg") ||
-      type.includes("heic") ||
-      type.includes("heif") ||
-      name.endsWith(".heic") ||
-      name.endsWith(".heif") ||
       name.endsWith(".gif") ||
       name.endsWith(".svg")
     ) {
@@ -172,8 +175,9 @@ export function RegistrationForm() {
 
     if (!type.startsWith("image/")) return file;
 
-    const maxDim = 1600;
-    const quality = 0.78;
+    // Aggressive enough to fit Vercel request limits.
+    const maxDim = 1400;
+    const quality = 0.72;
 
     try {
       const bitmap = await createImageBitmap(file);
@@ -262,7 +266,9 @@ export function RegistrationForm() {
     if (!pickedOriginal.length) return;
 
     setIsCompressing(true);
+    setFileSizeError(null);
     try {
+      // Try compression first (even if files seem large - compression might help)
       const pickedCompressed = await compressImages(pickedOriginal);
 
       // Allow adding more files across multiple picks.
@@ -274,6 +280,27 @@ export function RegistrationForm() {
       }
 
       const nextFiles = Array.from(nextMap.values()).slice(0, maxImages);
+
+      // Check individual file sizes AFTER compression
+      const oversized = nextFiles.find((f) => f.size > MAX_FILE_SIZE_BYTES);
+      if (oversized) {
+        setFileSizeError(
+          t("event.form.images.fileTooLarge", language, {
+            name: oversized.name,
+            max: MAX_FILE_SIZE_MB,
+          })
+        );
+        return;
+      }
+
+      // Check total size after adding new files
+      const totalSize = nextFiles.reduce((sum, f) => sum + f.size, 0);
+      if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+        setFileSizeError(
+          t("event.form.images.totalTooLarge", language, { max: MAX_TOTAL_SIZE_MB })
+        );
+        return;
+      }
 
       setFilesSelected(nextFiles);
       rebuildPreviews(nextFiles);
@@ -313,6 +340,16 @@ export function RegistrationForm() {
     }
     if (!isImageCountValid || !areRequiredFieldsFilled) {
       event.preventDefault();
+      return;
+    }
+
+    // Final size check before submit
+    const totalSize = filesSelected.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+      event.preventDefault();
+      setFileSizeError(
+        t("event.form.images.totalTooLarge", language, { max: MAX_TOTAL_SIZE_MB })
+      );
       return;
     }
 
@@ -537,6 +574,7 @@ export function RegistrationForm() {
         ) : null}
       </div>
 
+      {fileSizeError ? <p className="feedback">{fileSizeError}</p> : null}
       {state.message ? <p className="feedback">{state.message}</p> : null}
 
       <div className="flex justify-center pb-20 md:pb-12">

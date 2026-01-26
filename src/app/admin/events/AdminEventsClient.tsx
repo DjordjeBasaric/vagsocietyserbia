@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminEventTabs } from "@/app/admin/AdminEventTabs";
 import { RegistrationImageGallery } from "@/app/admin/RegistrationImageGallery";
@@ -52,6 +52,12 @@ export function AdminEventsClient({
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component is mounted before using search params to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const activeTab: Tab =
     statusParam === "approved"
@@ -193,7 +199,8 @@ export function AdminEventsClient({
         declinedCount={declined.length}
       />
 
-      <div className="glass-panel rounded-3xl p-4">
+      {isMounted && (
+        <div className="glass-panel rounded-3xl p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="relative flex-1 max-w-md">
             <FiSearch className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -228,6 +235,7 @@ export function AdminEventsClient({
           </div>
         </div>
       </div>
+      )}
 
       {visible.length === 0 ? (
         <div className="glass-panel rounded-3xl p-8 text-slate-600">

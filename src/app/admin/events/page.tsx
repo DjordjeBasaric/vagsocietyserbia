@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/db";
 import { approveRegistration, declineRegistration } from "@/app/actions/registration-actions";
 import { AdminShell } from "@/app/admin/AdminShell";
@@ -21,24 +22,26 @@ export default async function AdminEventsPage({
       subtitle="Pregled prijava i odobravanje učesnika"
       active="events"
     >
-      <AdminEventsClient
-        registrations={registrations.map((r) => ({
-          id: r.id,
-          firstName: r.firstName,
-          lastName: r.lastName,
-          email: r.email,
-          carModel: r.carModel,
-          country: r.country,
-          city: r.city,
-          arrivingWithTrailer: r.arrivingWithTrailer,
-          additionalInfo: r.additionalInfo,
-          status: r.status,
-          createdAt: r.createdAt.toISOString(),
-          images: r.images.map((img) => ({ id: img.id, url: img.url })),
-        }))}
-        approveRegistration={approveRegistration}
-        declineRegistration={declineRegistration}
-      />
+      <Suspense fallback={<div className="glass-panel rounded-3xl p-8 text-slate-600">Učitavanje...</div>}>
+        <AdminEventsClient
+          registrations={registrations.map((r) => ({
+            id: r.id,
+            firstName: r.firstName,
+            lastName: r.lastName,
+            email: r.email,
+            carModel: r.carModel,
+            country: r.country,
+            city: r.city,
+            arrivingWithTrailer: r.arrivingWithTrailer,
+            additionalInfo: r.additionalInfo,
+            status: r.status,
+            createdAt: r.createdAt.toISOString(),
+            images: r.images.map((img) => ({ id: img.id, url: img.url })),
+          }))}
+          approveRegistration={approveRegistration}
+          declineRegistration={declineRegistration}
+        />
+      </Suspense>
     </AdminShell>
   );
 }

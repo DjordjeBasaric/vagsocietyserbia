@@ -57,7 +57,15 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-          {t("footer.rights", language, { year })}
+          {t("footer.rights", language, { year })} · Developed by{" "}
+          <a
+            href="https://www.instagram.com/djordjebasaric/"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 decoration-slate-400/50 hover:decoration-slate-400 dark:decoration-slate-500/50 dark:hover:decoration-slate-500"
+          >
+            Đorđe Basarić
+          </a>
         </p>
       </Container>
     </footer>

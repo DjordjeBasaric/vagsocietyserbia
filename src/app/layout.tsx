@@ -65,7 +65,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased dark:bg-slate-950 dark:text-slate-50`}>
+      <body className={`${inter.variable} antialiased dark:bg-slate-950 dark:text-slate-50`} suppressHydrationWarning>
         <Script id="theme-init" strategy="beforeInteractive">
           {themeScript}
         </Script>

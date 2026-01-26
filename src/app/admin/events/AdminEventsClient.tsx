@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminEventTabs } from "@/app/admin/AdminEventTabs";
 import { RegistrationImageGallery } from "@/app/admin/RegistrationImageGallery";
+import { FiSearch, FiArrowUp, FiArrowDown } from "react-icons/fi";
 
 type Tab = "pending" | "approved" | "declined";
 
@@ -49,6 +50,8 @@ export function AdminEventsClient({
   } | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const activeTab: Tab =
     statusParam === "approved"
@@ -62,12 +65,38 @@ export function AdminEventsClient({
     const approvedList = registrations.filter((r) => r.status === "APPROVED");
     const declinedList = registrations.filter((r) => r.status === "DECLINED");
 
-    const visibleList =
+    let visibleList =
       activeTab === "approved"
         ? approvedList
         : activeTab === "declined"
           ? declinedList
           : pendingList;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      visibleList = visibleList.filter((r) => {
+        const fullName = `${r.firstName} ${r.lastName}`.toLowerCase();
+        const email = r.email.toLowerCase();
+        const carModel = r.carModel.toLowerCase();
+        const city = r.city.toLowerCase();
+        const country = r.country.toLowerCase();
+        return (
+          fullName.includes(query) ||
+          email.includes(query) ||
+          carModel.includes(query) ||
+          city.includes(query) ||
+          country.includes(query)
+        );
+      });
+    }
+
+    // Apply sorting by date
+    visibleList = [...visibleList].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
     return {
       pending: pendingList,
@@ -75,7 +104,7 @@ export function AdminEventsClient({
       declined: declinedList,
       visible: visibleList,
     };
-  }, [registrations, activeTab]);
+  }, [registrations, activeTab, searchQuery, sortOrder]);
 
   async function handleConfirm() {
     if (!confirm) return;
@@ -163,6 +192,42 @@ export function AdminEventsClient({
         approvedCount={approved.length}
         declinedCount={declined.length}
       />
+
+      <div className="glass-panel rounded-3xl p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="relative flex-1 max-w-md">
+            <FiSearch className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Pretraži prijave (ime, email, auto, grad...)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-black/10 bg-white px-10 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/20 dark:border-white/10 dark:bg-black dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600 dark:text-slate-400">Sortiraj po datumu:</span>
+            <button
+              type="button"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400/20 dark:border-white/10 dark:bg-black dark:text-slate-50 dark:hover:bg-slate-900"
+              title={sortOrder === "asc" ? "Najstarije prvo" : "Najnovije prvo"}
+            >
+              {sortOrder === "asc" ? (
+                <>
+                  <FiArrowUp className="h-4 w-4" />
+                  <span>Najstarije</span>
+                </>
+              ) : (
+                <>
+                  <FiArrowDown className="h-4 w-4" />
+                  <span>Najnovije</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {visible.length === 0 ? (
         <div className="glass-panel rounded-3xl p-8 text-slate-600">

@@ -57,7 +57,10 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-          {t("footer.rights", language, { year })} · Developed by{" "}
+          {t("footer.rights", language, { year })}
+          <span className="hidden md:inline"> · </span>
+          <br className="md:hidden" />
+          Developed by{" "}
           <a
             href="https://www.instagram.com/djordjebasaric/"
             target="_blank"

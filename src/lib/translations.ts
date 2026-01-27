@@ -51,6 +51,9 @@ export const translations = {
         location: "Lokacija",
         expectations: "Šta da očekujete",
       },
+      sponsors: {
+        title: "Naši sponzori",
+      },
       form: {
         title: "Forma za prijavu",
         subtitle: "Pošaljite podatke i slike automobila. Prvo dobijate email potvrdu da je prijava na čekanju, a nakon pregleda automobila stiže finalna potvrda (ili povratna informacija) na email.",
@@ -221,6 +224,9 @@ export const translations = {
         date: "Date",
         location: "Location",
         expectations: "What to expect",
+      },
+      sponsors: {
+        title: "Our sponsors",
       },
       form: {
         title: "Registration form",

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Container } from "@/components/Container";
+import { SponsorsSection } from "@/components/SponsorsSection";
 import { RegistrationForm } from "@/app/events/may/RegistrationForm";
 import { useLanguage } from "@/lib/language-context";
 import { t } from "@/lib/translations";
@@ -71,6 +72,8 @@ export function MayEventPageClient() {
             />
           </div>
         </div>
+
+        <SponsorsSection />
 
         <div className="mt-12">
           <h2 className="text-2xl text-slate-900 dark:text-white fade-up">

@@ -49,6 +49,16 @@ body {
   -webkit-appearance: none;
 }
 
+/* Hide scrollbar for sponsor carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
   a {
     color: inherit;

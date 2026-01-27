@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useLanguage } from "@/lib/language-context";
 import { t } from "@/lib/translations";
 
-const SPONSORS = [
+const SPONSORS: ReadonlyArray<{ src: string; alt: string }> = [
   { src: "/sponsors/autobarn.jpg", alt: "Autobarn" },
   { src: "/sponsors/comiautomobili.jpg", alt: "Comi Automobili" },
   { src: "/sponsors/eurogips.png", alt: "Eurogips" },
@@ -14,15 +14,35 @@ const SPONSORS = [
   { src: "/sponsors/piccolo.png", alt: "Piccolo" },
   { src: "/sponsors/scf.png", alt: "SCF" },
   { src: "/sponsors/simmaster.webp", alt: "SimMaster" },
-] as const;
+  { src: "/sponsors/begus.jpg", alt: "Begus" },
+  { src: "/sponsors/beltshop.png", alt: "Beltshop" },
+  { src: "/sponsors/droplab.jpg", alt: "Droplab" },
+  { src: "/sponsors/garage55.png", alt: "Garage55" },
+  { src: "/sponsors/hyper.jpg", alt: "Hyper" },
+  { src: "/sponsors/jovanovic.png", alt: "Jovanović" },
+  { src: "/sponsors/lake.png", alt: "Lake" },
+  { src: "/sponsors/mr.png", alt: "MR" },
+  { src: "/sponsors/paun.jpg", alt: "Paun" },
+  { src: "/sponsors/reddox.png", alt: "Reddox" },
+  { src: "/sponsors/vagsoccg.jpg", alt: "VAG SoC CG" },
+  { src: "/sponsors/vagsocljub.jpg", alt: "VAG SoC Ljub" },
+  { src: "/sponsors/vagspeedshop.jpg", alt: "VAG Speed Shop" },
+  { src: "/sponsors/manojlovic.png", alt: "Manojlović" },
+];
 
+const PER_ROW = 7;
 const COPIES = 4;
-const BASE_SPEED = 0.45;
-const EASE_FACTOR = 0.075;
+const BASE_SPEED = 0.7;
+const EASE_FACTOR = 0.12;
 const COOLDOWN_MS = 250;
-const DIRECTION = -1; // scroll LEFT
 
-function useSponsorsAnimation() {
+const ROW_CONFIG = [
+  { direction: -1 as const, phase: 0 },
+  { direction: 1 as const, phase: 0.33 },
+  { direction: -1 as const, phase: 0.66 },
+];
+
+function useSponsorsAnimation(direction: 1 | -1, initialPhase: number) {
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const blockWidthRef = React.useRef(0);
   const currentSpeedRef = React.useRef(0);
@@ -33,6 +53,10 @@ function useSponsorsAnimation() {
   const dragStartRef = React.useRef<{ startX: number; startScroll: number } | null>(null);
   const touchMoveHandlerRef = React.useRef<((e: TouchEvent) => void) | null>(null);
   const rafRef = React.useRef<number>(0);
+  const directionRef = React.useRef(direction);
+  const initialPhaseRef = React.useRef(initialPhase);
+  directionRef.current = direction;
+  initialPhaseRef.current = initialPhase;
 
   const measure = React.useCallback(() => {
     const el = scrollRef.current;
@@ -48,19 +72,17 @@ function useSponsorsAnimation() {
     const lo = bw;
     const hi = 3 * bw;
     const center = 2 * bw;
-    const left = el.scrollLeft;
-    if (left < lo || left >= hi) {
-      el.scrollLeft = center;
-      initedRef.current = true;
-    }
+    const phase = initialPhaseRef.current;
+    const startOffset = (phase - 0.5) * bw;
+    const initialLeft = center + startOffset;
+    el.scrollLeft = Math.max(lo, Math.min(hi - 1, initialLeft));
+    initedRef.current = true;
   }, []);
 
   React.useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const run = () => {
-      measure();
-    };
+    const run = () => measure();
     run();
     const ro = new ResizeObserver(run);
     ro.observe(el);
@@ -69,23 +91,18 @@ function useSponsorsAnimation() {
 
   const loop = React.useCallback(() => {
     measure();
-
     const el = scrollRef.current;
     const bw = blockWidthRef.current;
     if (!el || bw < 10) {
       rafRef.current = requestAnimationFrame(loop);
       return;
     }
-
     initScrollPosition();
-
     const now = Date.now();
     const paused = hoveredRef.current || draggingRef.current || now < cooldownUntilRef.current;
-    const targetSpeed = paused ? 0 : BASE_SPEED * DIRECTION;
-
+    const targetSpeed = paused ? 0 : BASE_SPEED * directionRef.current;
     currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * EASE_FACTOR;
     if (Math.abs(currentSpeedRef.current) < 0.002) currentSpeedRef.current = 0;
-
     if (!draggingRef.current) {
       const lo = bw;
       const hi = 3 * bw;
@@ -95,15 +112,11 @@ function useSponsorsAnimation() {
       while (next >= hi) next -= step;
       el.scrollLeft = next;
     }
-
     rafRef.current = requestAnimationFrame(loop);
   }, [measure, initScrollPosition]);
 
   React.useEffect(() => {
-    const start = () => {
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(start);
+    rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [loop]);
 
@@ -154,52 +167,97 @@ function useSponsorsAnimation() {
 
 export function SponsorsSection() {
   const { language } = useLanguage();
-  const { scrollRef, setHovered, onPointerDown, onPointerMove, onPointerUp } =
-    useSponsorsAnimation();
+  const row1 = useSponsorsAnimation(
+    ROW_CONFIG[0].direction,
+    ROW_CONFIG[0].phase
+  );
+  const row2 = useSponsorsAnimation(
+    ROW_CONFIG[1].direction,
+    ROW_CONFIG[1].phase
+  );
+  const row3 = useSponsorsAnimation(
+    ROW_CONFIG[2].direction,
+    ROW_CONFIG[2].phase
+  );
+
+  const rows = [row1, row2, row3];
 
   return (
-    <section className="mt-12 border-t border-black/5 py-10 dark:border-white/10">
-      <h2 className="mb-6 text-2xl text-slate-900 dark:text-white fade-up">
+    <section className="mt-16 overflow-x-hidden border-t border-black/5 py-12 dark:border-white/10">
+      <h2 className="mb-8 text-center text-2xl font-medium text-slate-900 dark:text-white md:text-3xl fade-up">
         {t("event.sponsors.title", language)}
       </h2>
+      {/* Na telefonu puna širina ekrana (100vw), na desktopu u okviru kontejnera */}
       <div
-        className="relative w-full overflow-hidden"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        className="relative w-[100vw] max-w-none left-1/2 -translate-x-1/2 overflow-hidden md:w-full md:left-0 md:translate-x-0"
         style={{ touchAction: "none" }}
       >
+        {/* Glow samo na desktopu; na telefonu bez glow, kanvas od ivice do ivice */}
         <div
-          ref={scrollRef}
-          className="no-scrollbar flex w-full overflow-x-auto overflow-y-hidden py-4"
-          style={{ scrollBehavior: "auto" }}
-        >
-          {Array.from({ length: COPIES }).map((_, copyIndex) => (
+          className="pointer-events-none absolute left-0 top-0 z-10 hidden h-full w-56 md:block"
+          style={{
+            background:
+              "linear-gradient(to right, var(--background) 0%, var(--background) 35%, rgba(255,255,255,0) 100%)",
+          }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full w-56 md:block"
+          style={{
+            background:
+              "linear-gradient(to left, var(--background) 0%, var(--background) 35%, rgba(255,255,255,0) 100%)",
+          }}
+          aria-hidden
+        />
+        {rows.map((row, rowIndex) => {
+          const start = rowIndex * PER_ROW;
+          const isLastRow = rowIndex === rows.length - 1;
+          const sponsors = SPONSORS.slice(
+            start,
+            isLastRow ? undefined : start + PER_ROW
+          );
+          return (
             <div
-              key={copyIndex}
-              className="flex shrink-0 items-center justify-center gap-10 px-6 md:gap-14 md:px-10"
+              key={rowIndex}
+              className="relative w-full"
+              onMouseEnter={() => row.setHovered(true)}
+              onMouseLeave={() => row.setHovered(false)}
+              onPointerDown={row.onPointerDown}
+              onPointerMove={row.onPointerMove}
+              onPointerUp={row.onPointerUp}
+              onPointerCancel={row.onPointerUp}
             >
-              {SPONSORS.map((s) => (
-                <div
-                  key={s.src + copyIndex}
-                  className="relative h-60 w-[480px] shrink-0 md:h-96 md:w-[720px]"
-                >
-                  <Image
-                    src={s.src}
-                    alt={s.alt}
-                    fill
-                    className="object-contain object-center"
-                    sizes="720px"
-                    unoptimized={s.src.endsWith(".webp")}
-                  />
-                </div>
-              ))}
+              <div
+                ref={row.scrollRef}
+                className="no-scrollbar flex w-full overflow-x-auto overflow-y-hidden py-3 px-4 md:py-4 md:px-0"
+                style={{ scrollBehavior: "auto" }}
+              >
+                {Array.from({ length: COPIES }).map((_, copyIndex) => (
+                  <div
+                    key={copyIndex}
+                    className="flex shrink-0 items-center justify-center gap-3 md:gap-6 md:px-6 mr-3 md:mr-6 last:mr-0"
+                  >
+                    {sponsors.map((s) => (
+                      <div
+                        key={s.src + copyIndex}
+                        className="relative h-28 w-[140px] shrink-0 overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm ring-1 ring-black/5 transition-all duration-300 hover:border-black/10 hover:shadow-md dark:border-white/10 dark:bg-[var(--surface)] dark:ring-white/10 dark:hover:border-white/20 md:h-48 md:w-[320px] md:rounded-2xl"
+                      >
+                        <Image
+                          src={s.src}
+                          alt={s.alt}
+                          fill
+                          className="object-contain object-center p-2 md:p-4"
+                          sizes="(max-width: 768px) 140px, 320px"
+                          unoptimized={s.src.endsWith(".webp")}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

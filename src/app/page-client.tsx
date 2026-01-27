@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/Container";
+import { SponsorsSection } from "@/components/SponsorsSection";
 import { useLanguage } from "@/lib/language-context";
 import { t } from "@/lib/translations";
 import { getCloudinaryVideoUrl } from "@/lib/cloudinary-video";
@@ -379,6 +380,10 @@ export function HomePageClient() {
           </div>
         </Container>
       </section>
+
+      <Container>
+        <SponsorsSection />
+      </Container>
     </main>
     </>
   );

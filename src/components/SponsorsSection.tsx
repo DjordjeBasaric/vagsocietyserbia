@@ -4,35 +4,25 @@ import * as React from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/language-context";
 import { t } from "@/lib/translations";
+import { SPONSORS } from "@/data/sponsors";
 
-const SPONSORS: ReadonlyArray<{ src: string; alt: string }> = [
-  { src: "/sponsors/autobarn.jpg", alt: "Autobarn" },
-  { src: "/sponsors/comiautomobili.jpg", alt: "Comi Automobili" },
-  { src: "/sponsors/eurogips.png", alt: "Eurogips" },
-  { src: "/sponsors/friks.jpg", alt: "Friks" },
-  { src: "/sponsors/nedic.jpg", alt: "Nedic" },
-  { src: "/sponsors/piccolo.png", alt: "Piccolo" },
-  { src: "/sponsors/scf.png", alt: "SCF" },
-  { src: "/sponsors/simmaster.webp", alt: "SimMaster" },
-  { src: "/sponsors/begus.jpg", alt: "Begus" },
-  { src: "/sponsors/beltshop.png", alt: "Beltshop" },
-  { src: "/sponsors/droplab.jpg", alt: "Droplab" },
-  { src: "/sponsors/garage55.png", alt: "Garage55" },
-  { src: "/sponsors/hyper.jpg", alt: "Hyper" },
-  { src: "/sponsors/jovanovic.png", alt: "Jovanović" },
-  { src: "/sponsors/mixa.png", alt: "Mixa" },
-  { src: "/sponsors/lake.png", alt: "Lake" },
-  { src: "/sponsors/mr.png", alt: "MR" },
-  { src: "/sponsors/paun.jpg", alt: "Paun" },
-  { src: "/sponsors/reddox.png", alt: "Reddox" },
-  { src: "/sponsors/vagsoccg.jpg", alt: "VAG SoC CG" },
-  { src: "/sponsors/vagsocljub.jpg", alt: "VAG SoC Ljub" },
-  { src: "/sponsors/vagspeedshop.jpg", alt: "VAG Speed Shop" },
-  { src: "/sponsors/manojlovic.png", alt: "Manojlović" },
-];
-
-const PER_ROW = 7;
+const ROW_COUNT = 3;
 const COPIES = 4;
+
+/** Rasporedi N sponzora u 3 reda tako da razlika između redova bude najviše 1 (npr. 8,8,8 ili 8,8,7). */
+function splitSponsorsIntoRows<T>(list: readonly T[]): T[][] {
+  const n = list.length;
+  if (n === 0) return [[], [], []];
+  const base = Math.floor(n / ROW_COUNT);
+  const remainder = n % ROW_COUNT;
+  const row0End = base + (remainder >= 1 ? 1 : 0);
+  const row1End = row0End + base + (remainder >= 2 ? 1 : 0);
+  return [
+    list.slice(0, row0End),
+    list.slice(row0End, row1End),
+    list.slice(row1End, n),
+  ];
+}
 const BASE_SPEED = 0.7;
 const EASE_FACTOR = 0.12;
 const COOLDOWN_MS = 250;
@@ -210,13 +200,8 @@ export function SponsorsSection() {
           }}
           aria-hidden
         />
-        {rows.map((row, rowIndex) => {
-          const start = rowIndex * PER_ROW;
-          const isLastRow = rowIndex === rows.length - 1;
-          const sponsors = SPONSORS.slice(
-            start,
-            isLastRow ? undefined : start + PER_ROW
-          );
+        {splitSponsorsIntoRows(SPONSORS).map((sponsors, rowIndex) => {
+          const row = rows[rowIndex];
           return (
             <div
               key={rowIndex}
@@ -230,13 +215,13 @@ export function SponsorsSection() {
             >
               <div
                 ref={row.scrollRef}
-                className="no-scrollbar flex w-full overflow-x-auto overflow-y-hidden py-3 px-4 md:py-4 md:px-0"
+                className="no-scrollbar flex w-full overflow-x-auto overflow-y-hidden gap-3 py-3 px-4 md:py-4 md:px-0 md:gap-4"
                 style={{ scrollBehavior: "auto" }}
               >
                 {Array.from({ length: COPIES }).map((_, copyIndex) => (
                   <div
                     key={copyIndex}
-                    className="flex shrink-0 items-center justify-center gap-3 md:gap-6 md:px-6 mr-3 md:mr-6 last:mr-0"
+                    className={`flex shrink-0 items-center justify-center gap-3 md:gap-6 ${copyIndex === 0 ? "md:pl-6" : ""} ${copyIndex === COPIES - 1 ? "md:pr-6" : ""}`}
                   >
                     {sponsors.map((s) => (
                       <div

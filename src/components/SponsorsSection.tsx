@@ -33,8 +33,12 @@ const ROW_CONFIG = [
   { direction: -1 as const, phase: 0.66 },
 ];
 
-function useSponsorsAnimation(direction: 1 | -1, initialPhase: number) {
-  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+function useSponsorsAnimation(
+  direction: 1 | -1,
+  initialPhase: number,
+  scrollRefOut: React.RefObject<HTMLDivElement | null>
+) {
+  const scrollRef = scrollRefOut;
   const blockWidthRef = React.useRef(0);
   const currentSpeedRef = React.useRef(0);
   const hoveredRef = React.useRef(false);
@@ -158,20 +162,28 @@ function useSponsorsAnimation(direction: 1 | -1, initialPhase: number) {
 
 export function SponsorsSection() {
   const { language } = useLanguage();
+  const scrollRef0 = React.useRef<HTMLDivElement>(null);
+  const scrollRef1 = React.useRef<HTMLDivElement>(null);
+  const scrollRef2 = React.useRef<HTMLDivElement>(null);
+
   const row1 = useSponsorsAnimation(
     ROW_CONFIG[0].direction,
-    ROW_CONFIG[0].phase
+    ROW_CONFIG[0].phase,
+    scrollRef0
   );
   const row2 = useSponsorsAnimation(
     ROW_CONFIG[1].direction,
-    ROW_CONFIG[1].phase
+    ROW_CONFIG[1].phase,
+    scrollRef1
   );
   const row3 = useSponsorsAnimation(
     ROW_CONFIG[2].direction,
-    ROW_CONFIG[2].phase
+    ROW_CONFIG[2].phase,
+    scrollRef2
   );
 
   const rows = [row1, row2, row3];
+  const scrollRefs = [scrollRef0, scrollRef1, scrollRef2];
 
   return (
     <section className="mt-16 overflow-x-hidden border-t border-black/5 py-12 dark:border-white/10">
@@ -202,6 +214,7 @@ export function SponsorsSection() {
         />
         {splitSponsorsIntoRows(SPONSORS).map((sponsors, rowIndex) => {
           const row = rows[rowIndex];
+          const scrollRef = scrollRefs[rowIndex];
           return (
             <div
               key={rowIndex}
@@ -214,7 +227,7 @@ export function SponsorsSection() {
               onPointerCancel={row.onPointerUp}
             >
               <div
-                ref={row.scrollRef}
+                ref={scrollRef}
                 className="no-scrollbar flex w-full overflow-x-auto overflow-y-hidden gap-3 py-3 px-4 md:py-4 md:px-0 md:gap-4"
                 style={{ scrollBehavior: "auto" }}
               >

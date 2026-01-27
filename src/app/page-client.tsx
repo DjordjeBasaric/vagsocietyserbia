@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Container } from "@/components/Container";
 import { useLanguage } from "@/lib/language-context";
 import { t } from "@/lib/translations";
+import { getCloudinaryVideoUrl } from "@/lib/cloudinary-video";
 
 const allGalleryImages = Array.from(
   { length: 37 },
@@ -24,15 +25,51 @@ function pickRandomUnique<T>(items: T[], count: number) {
 export function HomePageClient() {
   const { language } = useLanguage();
 
-  // Hero video
+  // Hero video - use Cloudinary URL with optimizations
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
-  const VIDEO_START_AT = 5;
-  const [videoReady, setVideoReady] = React.useState(false);
-
-  React.useEffect(() => {
-    const t = window.setTimeout(() => setVideoReady(true), 1200);
-    return () => window.clearTimeout(t);
+  const VIDEO_START_AT = 0; // Start from beginning
+  
+  // Get optimized Cloudinary video URL with cache-busting
+  // Add version query parameter to ensure latest version is loaded after upload
+  const videoUrl = React.useMemo(() => {
+    const baseUrl = getCloudinaryVideoUrl("frontpage_video", {
+      width: 1920,
+      quality: "auto",
+      format: "mp4",
+    });
+    // Use today's date as cache-buster - this ensures new video loads within 24h
+    // When uploading a new video, it will be available the next day at latest
+    // For immediate update, you can also set NEXT_PUBLIC_VIDEO_VERSION env var
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const videoVersion = process.env.NEXT_PUBLIC_VIDEO_VERSION || today;
+    const cacheBuster = `?v=${videoVersion}`;
+    return `${baseUrl}${cacheBuster}`;
   }, []);
+
+  // Try to play video when ready
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = async () => {
+      try {
+        await video.play();
+      } catch (error) {
+        // Autoplay blocked, user will need to interact
+        console.log("Video autoplay blocked:", error);
+      }
+    };
+
+    if (video.readyState >= 3) {
+      tryPlay();
+    }
+
+    video.addEventListener("canplay", tryPlay, { once: true });
+
+    return () => {
+      video.removeEventListener("canplay", tryPlay);
+    };
+  }, [videoUrl]);
 
   // Stats
   const stats = [
@@ -117,7 +154,8 @@ export function HomePageClient() {
   }, [galleryImages.length]);
 
   return (
-    <main className="pb-24 md:pb-0">
+    <>
+      <main className="pb-24 md:pb-0">
       <section className="relative isolate flex min-h-[80vh] flex-col items-center justify-center overflow-hidden py-14 md:py-20">
         <div
           aria-hidden
@@ -125,10 +163,8 @@ export function HomePageClient() {
         >
           <video
             ref={videoRef}
-            className={`hero-video h-full w-full object-cover scale-[1.02] saturate-110 contrast-110 brightness-95 transition-opacity duration-300 ${
-              videoReady ? "opacity-100" : "opacity-0"
-            }`}
-            src="/frontpage_video.mp4"
+            className="hero-video relative h-full w-full object-cover scale-[1.02] saturate-110 contrast-110 brightness-95"
+            src={videoUrl}
             autoPlay
             muted
             loop
@@ -139,25 +175,7 @@ export function HomePageClient() {
             disableRemotePlayback
             preload="auto"
             onLoadedMetadata={() => {
-              const v = videoRef.current;
-              if (!v) return;
-              if (Number.isFinite(v.duration) && v.duration > VIDEO_START_AT) {
-                v.currentTime = VIDEO_START_AT;
-              }
-            }}
-            onLoadedData={() => setVideoReady(true)}
-            onCanPlay={() => setVideoReady(true)}
-            onTimeUpdate={() => {
-              const v = videoRef.current;
-              if (!v) return;
-              // Keep start at VIDEO_START_AT even if the browser loops back to 0.
-              if (
-                Number.isFinite(v.duration) &&
-                v.duration > VIDEO_START_AT &&
-                v.currentTime < VIDEO_START_AT - 0.25
-              ) {
-                v.currentTime = VIDEO_START_AT;
-              }
+              // Video metadata loaded, ready to play from start (VIDEO_START_AT = 0)
             }}
           />
           <div className="absolute inset-0 bg-black/25 dark:bg-black/55" />
@@ -323,12 +341,13 @@ export function HomePageClient() {
                   <Image
                     src={src}
                     alt={language === "sr" ? "Fotografija projekta" : "Project photo"}
-                    width={1920}
-                    height={1080}
+                    width={1280}
+                    height={720}
                     sizes="(min-width: 1280px) 1100px, (min-width: 1024px) 920px, (min-width: 768px) 90vw, 100vw"
                     className="h-[240px] w-screen object-contain md:h-[420px] md:w-full lg:h-[520px]"
                     style={{ transform: "translateZ(1px)" }}
                     priority={index === 0}
+                    quality={85}
                   />
                 </div>
               );
@@ -361,6 +380,7 @@ export function HomePageClient() {
         </Container>
       </section>
     </main>
+    </>
   );
 }
 

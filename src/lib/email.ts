@@ -3,6 +3,10 @@ type EmailPayload = {
   subject: string;
   html: string;
   text: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+  }>;
 };
 
 let resendClientPromise: Promise<import("resend").Resend> | null = null;
@@ -39,6 +43,7 @@ export async function sendEmail(payload: EmailPayload) {
       subject: payload.subject,
       text: payload.text,
       html: payload.html,
+      attachments: payload.attachments,
     });
   } catch (error) {
     console.error("[Email] Greška pri slanju emaila:", error);

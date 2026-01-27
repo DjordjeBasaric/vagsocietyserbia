@@ -159,3 +159,60 @@ export async function storeEventImages(
 
   return stored;
 }
+
+/**
+ * Upload video file to Cloudinary
+ * Returns the Cloudinary URL with optimizations
+ */
+export async function uploadVideoToCloudinary(
+  filePath: string,
+  publicId?: string
+): Promise<string> {
+  if (!hasCloudinaryConfig()) {
+    throw new Error("Cloudinary config is missing");
+  }
+
+  const { readFile } = await import("fs/promises");
+  const fileBuffer = await readFile(filePath);
+  const fileName = path.basename(filePath);
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const folder = "vagsocietyserbia/videos";
+  const finalPublicId = publicId || `frontpage_video`;
+  const signatureBase = `folder=${folder}&public_id=${finalPublicId}&timestamp=${timestamp}${cloudSecret}`;
+  const signature = crypto
+    .createHash("sha1")
+    .update(signatureBase)
+    .digest("hex");
+
+  const form = new FormData();
+  form.append("file", new Blob([fileBuffer]), fileName);
+  form.append("api_key", cloudKey!);
+  form.append("timestamp", String(timestamp));
+  form.append("folder", folder);
+  form.append("public_id", finalPublicId);
+  form.append("resource_type", "video");
+  form.append("signature", signature);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+    {
+      method: "POST",
+      body: form,
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Cloudinary video upload failed: ${errorBody}`);
+  }
+
+  const data = (await response.json()) as {
+    secure_url: string;
+    public_id: string;
+  };
+
+  return data.secure_url;
+}
+
+// getCloudinaryVideoUrl has been moved to cloudinary-video.ts to avoid client-side bundle issues with sharp

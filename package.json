@@ -20,7 +20,8 @@
     "resend:test": "node scripts/test-resend.js",
     "check-db": "node scripts/check-db-status.js",
     "test-db": "node scripts/test-db-connection.js",
-    "diagnose-db": "node scripts/diagnose-db.js"
+    "diagnose-db": "node scripts/diagnose-db.js",
+    "upload-video": "node scripts/upload-video-to-cloudinary.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.1",

@@ -20,6 +20,7 @@ const SPONSORS: ReadonlyArray<{ src: string; alt: string }> = [
   { src: "/sponsors/garage55.png", alt: "Garage55" },
   { src: "/sponsors/hyper.jpg", alt: "Hyper" },
   { src: "/sponsors/jovanovic.png", alt: "Jovanović" },
+  { src: "/sponsors/mixa.png", alt: "Mixa" },
   { src: "/sponsors/lake.png", alt: "Lake" },
   { src: "/sponsors/mr.png", alt: "MR" },
   { src: "/sponsors/paun.jpg", alt: "Paun" },

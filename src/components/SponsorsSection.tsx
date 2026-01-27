@@ -24,6 +24,7 @@ function splitSponsorsIntoRows<T>(list: readonly T[]): T[][] {
   ];
 }
 const BASE_SPEED = 0.7;
+const BASE_SPEED_MIDDLE = 0.95;
 const EASE_FACTOR = 0.12;
 const COOLDOWN_MS = 250;
 
@@ -220,7 +221,7 @@ function useSponsorsAnimationTransform(initialPhase: number) {
     initPosition();
     const now = Date.now();
     const paused = hoveredRef.current || draggingRef.current || now < cooldownUntilRef.current;
-    const targetSpeed = paused ? 0 : BASE_SPEED;
+    const targetSpeed = paused ? 0 : BASE_SPEED_MIDDLE;
     currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * EASE_FACTOR;
     if (Math.abs(currentSpeedRef.current) < 0.002) currentSpeedRef.current = 0;
     if (!draggingRef.current) {

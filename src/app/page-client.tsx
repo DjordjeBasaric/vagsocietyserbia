@@ -38,13 +38,12 @@ export function HomePageClient() {
       quality: "auto",
       format: "mp4",
     });
-    // Use today's date as cache-buster - this ensures new video loads within 24h
-    // When uploading a new video, it will be available the next day at latest
-    // For immediate update, you can also set NEXT_PUBLIC_VIDEO_VERSION env var
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const videoVersion = process.env.NEXT_PUBLIC_VIDEO_VERSION || today;
-    const cacheBuster = `?v=${videoVersion}`;
-    return `${baseUrl}${cacheBuster}`;
+    // Na Vercelu next.config prosleđuje VERCEL_GIT_COMMIT_SHA → svaki deploy = novi URL.
+    // Možeš forsirati i sa NEXT_PUBLIC_VIDEO_VERSION u Vercel env (npr. "2" kad zameniš video).
+    const v =
+      process.env.NEXT_PUBLIC_VIDEO_VERSION?.trim() ||
+      new Date().toISOString().split("T")[0];
+    return `${baseUrl}?v=${v}`;
   }, []);
 
   // Try to play video when ready

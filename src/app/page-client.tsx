@@ -32,16 +32,18 @@ export function HomePageClient() {
   
   // Get optimized Cloudinary video URL with cache-busting
   // Add version query parameter to ensure latest version is loaded after upload
+  // Kad zameniš video (Cloudinary ili public/), povećaj VIDEO_CACHE_BUST pa push + deploy
+  const VIDEO_CACHE_BUST = "4";
   const videoUrl = React.useMemo(() => {
     const baseUrl = getCloudinaryVideoUrl("frontpage_video", {
       width: 1920,
       quality: "auto",
       format: "mp4",
     });
-    // Na Vercelu next.config prosleđuje VERCEL_GIT_COMMIT_SHA → svaki deploy = novi URL.
-    // Možeš forsirati i sa NEXT_PUBLIC_VIDEO_VERSION u Vercel env (npr. "2" kad zameniš video).
     const v =
-      process.env.NEXT_PUBLIC_VIDEO_VERSION?.trim() ||
+      (typeof process.env.NEXT_PUBLIC_VIDEO_VERSION === "string" &&
+        process.env.NEXT_PUBLIC_VIDEO_VERSION.trim()) ||
+      VIDEO_CACHE_BUST ||
       new Date().toISOString().split("T")[0];
     return `${baseUrl}?v=${v}`;
   }, []);
@@ -162,6 +164,7 @@ export function HomePageClient() {
           className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-0 md:-top-20"
         >
           <video
+            key={videoUrl}
             ref={videoRef}
             className="hero-video relative h-full w-full object-cover scale-[1.02] saturate-110 contrast-110 brightness-95"
             src={videoUrl}

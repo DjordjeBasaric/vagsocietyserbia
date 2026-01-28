@@ -4,11 +4,12 @@ import { fileURLToPath } from "url";
 const turbopackRoot = fileURLToPath(new URL(".", import.meta.url));
 
 const nextConfig: NextConfig = {
-  // Na Vercelu: svaki deploy dobija drugi video URL (commit SHA), pa se ne kešira stari video
+  // Video: da se na produkciji prikaže novi video, u Vercel → Settings → Env add NEXT_PUBLIC_VIDEO_VERSION=2 (ili 3, 4…), pa Deployments → Redeploy → ✓ Clear cache and redeploy
   env: {
     NEXT_PUBLIC_VIDEO_VERSION:
       process.env.NEXT_PUBLIC_VIDEO_VERSION ??
       process.env.VERCEL_GIT_COMMIT_SHA ??
+      process.env.VERCEL_BUILD_ID ??
       "",
   },
   // Prevent Next/Turbopack from picking an unrelated workspace root

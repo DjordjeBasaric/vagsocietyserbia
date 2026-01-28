@@ -4,12 +4,16 @@ import { fileURLToPath } from "url";
 const turbopackRoot = fileURLToPath(new URL(".", import.meta.url));
 
 const nextConfig: NextConfig = {
-  // Video: da se na produkciji prikaže novi video, u Vercel → Settings → Env add NEXT_PUBLIC_VIDEO_VERSION=2 (ili 3, 4…), pa Deployments → Redeploy → ✓ Clear cache and redeploy
+  // Video: novi video → NEXT_PUBLIC_VIDEO_VERSION u Vercel pa Redeploy. Cloudinary: video ide sa Cloudinary samo ako client vidi cloud name (next.config prosleđuje CLOUDINARY_* u NEXT_PUBLIC_*).
   env: {
     NEXT_PUBLIC_VIDEO_VERSION:
       process.env.NEXT_PUBLIC_VIDEO_VERSION ??
       process.env.VERCEL_GIT_COMMIT_SHA ??
       process.env.VERCEL_BUILD_ID ??
+      "",
+    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ??
+      process.env.CLOUDINARY_CLOUD_NAME ??
       "",
   },
   // Prevent Next/Turbopack from picking an unrelated workspace root

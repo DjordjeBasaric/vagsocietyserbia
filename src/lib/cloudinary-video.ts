@@ -12,15 +12,13 @@ export function getCloudinaryVideoUrl(publicId: string, options?: {
   quality?: "auto" | number;
   format?: "mp4" | "webm";
 }): string {
-  // Use CLOUDINARY_CLOUD_NAME (server-side) or NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME (client-side)
-  // On server, CLOUDINARY_CLOUD_NAME is available
-  // On client, only NEXT_PUBLIC_* env vars are available
-  const cloudName = typeof process !== "undefined" 
-    ? (process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME)
+  // Video se učitava u browseru (client komponenta) → u buildu mora biti NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME.
+  // next.config na Vercelu prosleđuje CLOUDINARY_CLOUD_NAME u NEXT_PUBLIC_* pa jedan env var dovoljan.
+  const cloudName = typeof process !== "undefined"
+    ? (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME)
     : undefined;
-    
+
   if (!cloudName) {
-    // Fallback to local file if Cloudinary is not configured
     return "/frontpage_video.mp4";
   }
 

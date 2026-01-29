@@ -34,4 +34,5 @@ export const SPONSORS = [
   { src: "/sponsors/vagspeedshop.jpg", alt: "VAG Speed Shop" },
   { src: "/sponsors/manojlovic.png", alt: "Manojlović" },
   { src: "/sponsors/cvele.jpg", alt: "Cvele" },
+  { src: "/sponsors/ferdinand.png", alt: "Ferdinand" },
 ] as const;

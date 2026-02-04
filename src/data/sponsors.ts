@@ -11,6 +11,7 @@
 
 export const SPONSORS = [
   { src: "/sponsors/autobarn.jpg", alt: "Autobarn" },
+  { src: "/sponsors/autoanaliza.jpg", alt: "AutoAnaliza" },
   { src: "/sponsors/comiautomobili.jpg", alt: "Comi Automobili" },
   { src: "/sponsors/eurogips.png", alt: "Eurogips" },
   { src: "/sponsors/friks.jpg", alt: "Friks" },

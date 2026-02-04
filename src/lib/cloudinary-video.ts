@@ -1,19 +1,31 @@
 /**
  * Cloudinary video URL helper
  * This file is safe to import in client components
+ *
+ * Video source (redosled): 1) Bunny, 2) Cloudinary, 3) lokalno.
+ * 1. Bunny – NEXT_PUBLIC_BUNNY_VIDEO_URL (pun URL)
+ * 2. Cloudinary – ako je cloud name postavljen
+ * 3. Lokalno – /frontpage_video.mp4
  */
 
 /**
- * Get optimized Cloudinary video URL with transformations
- * Works on both server and client
+ * Get frontpage hero video URL (Bunny, Cloudinary, or local).
+ * Works on both server and client.
  */
 export function getCloudinaryVideoUrl(publicId: string, options?: {
   width?: number;
   quality?: "auto" | number;
   format?: "mp4" | "webm";
 }): string {
-  // Video se učitava u browseru (client komponenta) → u buildu mora biti NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME.
-  // next.config na Vercelu prosleđuje CLOUDINARY_CLOUD_NAME u NEXT_PUBLIC_* pa jedan env var dovoljan.
+  const bunnyUrl =
+    typeof process !== "undefined"
+      ? (process.env.NEXT_PUBLIC_BUNNY_VIDEO_URL || "").trim()
+      : "";
+
+  if (bunnyUrl && bunnyUrl.startsWith("http")) {
+    return bunnyUrl;
+  }
+
   const cloudName = typeof process !== "undefined"
     ? (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME)
     : undefined;

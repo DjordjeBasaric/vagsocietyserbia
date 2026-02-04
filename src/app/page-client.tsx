@@ -26,13 +26,8 @@ function pickRandomUnique<T>(items: T[], count: number) {
 export function HomePageClient() {
   const { language } = useLanguage();
 
-  // Hero video - use Cloudinary URL with optimizations
+  // Hero video – Cloudinary ili lokalni /frontpage_video.mp4
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
-  const VIDEO_START_AT = 0; // Start from beginning
-  
-  // Get optimized Cloudinary video URL with cache-busting
-  // Add version query parameter to ensure latest version is loaded after upload
-  // Kad zameniš video (Cloudinary ili public/), povećaj VIDEO_CACHE_BUST pa push + deploy
   const VIDEO_CACHE_BUST = "4";
   const videoUrl = React.useMemo(() => {
     const baseUrl = getCloudinaryVideoUrl("frontpage_video", {
@@ -48,7 +43,6 @@ export function HomePageClient() {
     return `${baseUrl}?v=${v}`;
   }, []);
 
-  // Try to play video when ready
   React.useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -56,21 +50,16 @@ export function HomePageClient() {
     const tryPlay = async () => {
       try {
         await video.play();
-      } catch (error) {
-        // Autoplay blocked, user will need to interact
-        console.log("Video autoplay blocked:", error);
+      } catch {
+        // Autoplay blocked
       }
     };
 
     if (video.readyState >= 3) {
       tryPlay();
     }
-
     video.addEventListener("canplay", tryPlay, { once: true });
-
-    return () => {
-      video.removeEventListener("canplay", tryPlay);
-    };
+    return () => video.removeEventListener("canplay", tryPlay);
   }, [videoUrl]);
 
   // Stats
@@ -177,9 +166,6 @@ export function HomePageClient() {
             disablePictureInPicture
             disableRemotePlayback
             preload="auto"
-            onLoadedMetadata={() => {
-              // Video metadata loaded, ready to play from start (VIDEO_START_AT = 0)
-            }}
           />
           <div className="absolute inset-0 bg-black/25 dark:bg-black/55" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20 dark:from-black/40 dark:via-transparent dark:to-black/70" />

@@ -28,6 +28,8 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+    // Podržava i default kvalitet (75) i eksplicitno prosleđen kvalitet 85 u <Image quality={85}>
+    qualities: [75, 85],
   },
   experimental: {
     serverActions: {

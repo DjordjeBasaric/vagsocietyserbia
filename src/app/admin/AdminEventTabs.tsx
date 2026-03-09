@@ -33,18 +33,17 @@ export function AdminEventTabs({
         : "pending";
 
   const handleTabClick = (tabKey: Tab) => {
-    const params = new URLSearchParams(searchParams?.toString());
+    const params = new URLSearchParams();
 
-    // Keep default view clean (no query param) for pending.
+    // Pri promeni taba resetuj take – svaki tab počinje sa default brojem
     if (tabKey === "pending") {
-      params.delete("status");
+      // Bez status = pending
     } else {
       params.set("status", tabKey);
     }
 
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
-    // Ensure server components refetch when query changes
     router.refresh();
   };
 

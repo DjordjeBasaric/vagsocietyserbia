@@ -6,15 +6,61 @@ import { AdminEventsClient } from "@/app/admin/events/AdminEventsClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminEventsPage({
-  searchParams,
-}: {
-  searchParams?: { status?: string | string[] };
+type AdminEventsSearchParams = {
+  status?: string | string[];
+  take?: string | string[];
+};
+
+export default async function AdminEventsPage(props: {
+  searchParams: Promise<AdminEventsSearchParams>;
 }) {
-  const registrations = await prisma.eventRegistration.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { images: true },
-  });
+  const searchParams = await props.searchParams;
+
+  const takeParam = Array.isArray(searchParams.take)
+    ? searchParams.take[0]
+    : searchParams.take;
+  const statusParam = Array.isArray(searchParams.status)
+    ? searchParams.status[0]
+    : searchParams.status;
+
+  const takeBase = Number.parseInt(takeParam || "10", 10);
+  const take = Number.isFinite(takeBase)
+    ? Math.min(Math.max(takeBase, 5), 200)
+    : 10;
+
+  const activeStatus: "PENDING" | "APPROVED" | "DECLINED" =
+    statusParam === "approved"
+      ? "APPROVED"
+      : statusParam === "declined"
+        ? "DECLINED"
+        : "PENDING";
+
+  const whereStatus = { status: activeStatus };
+
+  const [
+    pendingTotal,
+    approvedTotal,
+    declinedTotal,
+    registrations,
+  ] = await Promise.all([
+    prisma.eventRegistration.count({ where: { status: "PENDING" } }),
+    prisma.eventRegistration.count({ where: { status: "APPROVED" } }),
+    prisma.eventRegistration.count({ where: { status: "DECLINED" } }),
+    prisma.eventRegistration.findMany({
+      where: whereStatus,
+      orderBy: { createdAt: "desc" },
+      include: { images: true },
+      take,
+    }),
+  ]);
+
+  const activeTotal =
+    activeStatus === "PENDING"
+      ? pendingTotal
+      : activeStatus === "APPROVED"
+        ? approvedTotal
+        : declinedTotal;
+  const hasMore = activeTotal > registrations.length;
 
   return (
     <AdminShell
@@ -38,6 +84,10 @@ export default async function AdminEventsPage({
             createdAt: r.createdAt.toISOString(),
             images: r.images.map((img) => ({ id: img.id, url: img.url })),
           }))}
+          pendingTotal={pendingTotal}
+          approvedTotal={approvedTotal}
+          declinedTotal={declinedTotal}
+          hasMore={hasMore}
           approveRegistration={approveRegistration}
           declineRegistration={declineRegistration}
         />

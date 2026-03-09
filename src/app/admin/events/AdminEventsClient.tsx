@@ -33,10 +33,18 @@ const statusLabel: Record<RegistrationStatus, string> = {
 
 export function AdminEventsClient({
   registrations,
+  pendingTotal,
+  approvedTotal,
+  declinedTotal,
+  hasMore,
   approveRegistration,
   declineRegistration,
 }: {
   registrations: AdminRegistrationItem[];
+  pendingTotal: number;
+  approvedTotal: number;
+  declinedTotal: number;
+  hasMore: boolean;
   approveRegistration: (formData: FormData) => Promise<void>;
   declineRegistration: (formData: FormData) => Promise<void>;
 }) {
@@ -112,6 +120,22 @@ export function AdminEventsClient({
     };
   }, [registrations, activeTab, searchQuery, sortOrder]);
 
+  const activeTotal =
+    activeTab === "approved"
+      ? approvedTotal
+      : activeTab === "declined"
+        ? declinedTotal
+        : pendingTotal;
+
+  function handleLoadMore() {
+    // Povećaj broj učitanih prijava za 10 i osveži URL sa ?take=
+    const currentTake = registrations.length || 10;
+    const nextTake = currentTake + 10;
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set("take", String(nextTake));
+    router.push(`/admin/events?${params.toString()}`);
+  }
+
   async function handleConfirm() {
     if (!confirm) return;
     setIsConfirming(true);
@@ -132,10 +156,6 @@ export function AdminEventsClient({
     } finally {
       setIsConfirming(false);
     }
-  }
-
-  if (registrations.length === 0) {
-    return <div className="glass-panel rounded-3xl p-8 text-slate-600">Nema prijava.</div>;
   }
 
   return (
@@ -194,9 +214,9 @@ export function AdminEventsClient({
       ) : null}
 
       <AdminEventTabs
-        pendingCount={pending.length}
-        approvedCount={approved.length}
-        declinedCount={declined.length}
+        pendingCount={pendingTotal}
+        approvedCount={approvedTotal}
+        declinedCount={declinedTotal}
       />
 
       {isMounted && (
@@ -246,36 +266,37 @@ export function AdminEventsClient({
               : "Nema odbijenih prijava."}
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {visible.map((registration, index) => (
-            <div key={registration.id} className="glass-panel rounded-3xl p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-lg text-slate-900">
-                    {index + 1}. {registration.firstName} {registration.lastName}
-                  </p>
+        <>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {visible.map((registration, index) => (
+              <div key={registration.id} className="glass-panel rounded-3xl p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-lg text-slate-900">
+                      {index + 1}. {registration.firstName} {registration.lastName}
+                    </p>
                   <p className="text-sm text-slate-500">{registration.email}</p>
-                  <p className="text-sm text-slate-500">
-                    <span className="font-medium text-slate-700">Auto:</span> {registration.carModel}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    <span className="font-medium text-slate-700">Lokacija:</span> {registration.city},{" "}
-                    {registration.country}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    <span className="font-medium text-slate-700">Prikolica:</span>{" "}
-                    {registration.arrivingWithTrailer ? "Da" : "Ne"}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Primljeno:{" "}
-                    {new Date(registration.createdAt).toLocaleString("sr-RS", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    <p className="text-sm text-slate-500">
+                      <span className="font-medium text-slate-700">Auto:</span> {registration.carModel}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      <span className="font-medium text-slate-700">Lokacija:</span> {registration.city},{" "}
+                      {registration.country}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      <span className="font-medium text-slate-700">Prikolica:</span>{" "}
+                      {registration.arrivingWithTrailer ? "Da" : "Ne"}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Primljeno:{" "}
+                      {new Date(registration.createdAt).toLocaleString("sr-RS", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -332,8 +353,21 @@ export function AdminEventsClient({
                 <p className="mt-4 text-sm text-slate-500">Nema otpremljenih slika.</p>
               )}
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {hasMore && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                className="button-ghost px-4 py-2.5 text-sm"
+                onClick={handleLoadMore}
+              >
+                Učitaj još (trenutno {visible.length} / ukupno {activeTotal})
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
